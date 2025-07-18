@@ -19,7 +19,7 @@ import {
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { toggleCart } from '../../store/slices/cartSlice';
 
-const Header: React.FC = () => {
+const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector(state => state.cart.items);
   const [langAnchor, setLangAnchor] = React.useState<null | HTMLElement>(null);
@@ -67,7 +67,7 @@ const Header: React.FC = () => {
         </IconButton>
 
         {/* 👤 Профиль */}
-        <IconButton color="inherit">
+        <IconButton color="inherit" onClick={onProfileClick}>
           <AccountCircle />
         </IconButton>
       </Toolbar>
