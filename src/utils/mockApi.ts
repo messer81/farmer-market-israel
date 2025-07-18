@@ -6,7 +6,7 @@ type MockUser = {
 };
 
 let mockUsers: MockUser[] = [
-  { id: '1', name: 'Test User', email: 'test@mail.com', password: '123456' }
+  { id: '1', name: 'Edel', email: 'edelisakson@gmail.com', password: '123456' }
 ];
 
 export async function mockLogin(email: string, password: string) {

@@ -2,13 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import productsSlice from './slices/productsSlice';
 import cartSlice from './slices/cartSlice';
 import userSlice from './slices/userSlice';
-import Grid from '@mui/material/Grid';
+import languageSlice from './slices/languageSlice';
 
 export const store = configureStore({
   reducer: {
     products: productsSlice,
     cart: cartSlice,
     user: userSlice,
+    language: languageSlice,
   },
 });
 
