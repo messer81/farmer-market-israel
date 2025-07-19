@@ -28,6 +28,7 @@ import { db } from '../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import CardPayment from '../payment/CardPayment';
 import PayPalPayment from '../payment/PayPalPayment';
+import AuthPage from './AuthPage';
 
 const steps = ['cart', 'delivery', 'payment', 'confirmation'];
 
@@ -36,6 +37,7 @@ const CheckoutPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { items, total } = useAppSelector(state => state.cart);
   const user = useAppSelector(state => state.user.user);
+  const [showAuth, setShowAuth] = useState(false);
   
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -70,36 +72,79 @@ const CheckoutPage: React.FC = () => {
     }));
   };
 
+  // Функция для поиска undefined-полей во вложенных объектах
+  function findUndefinedFields(obj: any, path: string = '') {
+    let result: string[] = [];
+    if (Array.isArray(obj)) {
+      obj.forEach((item: any, idx: number) => {
+        result = result.concat(findUndefinedFields(item, `${path}[${idx}]`));
+      });
+    } else if (obj && typeof obj === 'object') {
+      Object.entries(obj).forEach(([key, value]) => {
+        if (value === undefined) {
+          result.push(`${path ? path + '.' : ''}${key}`);
+        } else if (typeof value === 'object') {
+          result = result.concat(findUndefinedFields(value, `${path ? path + '.' : ''}${key}`));
+        }
+      });
+    }
+    return result;
+  }
+
   const handleSubmitOrder = async () => {
     setLoading(true);
     setError('');
 
+    // Проверка обязательных полей
+    if (!deliveryAddress.address || !deliveryAddress.city || !deliveryAddress.name || !deliveryAddress.phone) {
+      setError('Пожалуйста, заполните все поля доставки.');
+      setLoading(false);
+      return;
+    }
+    if (!items || items.length === 0) {
+      setError('Корзина пуста.');
+      setLoading(false);
+      return;
+    }
+    if (!total || total <= 0) {
+      setError('Сумма заказа некорректна.');
+      setLoading(false);
+      return;
+    }
+
     try {
+      // Очищаем deliveryAddress от undefined
+      const cleanDeliveryAddress = Object.fromEntries(
+        Object.entries(deliveryAddress).map(([k, v]) => [k, v === undefined ? '' : v])
+      );
       const orderData = {
         userId: user?.id || 'guest',
-        items: items,
-        total: total,
+        items: items || [],
+        total: total || 0,
         status: OrderStatus.PENDING,
-        deliveryAddress: deliveryAddress,
-        paymentMethod: paymentMethod,
-        paymentId: paymentId || null,
-        notes: deliveryAddress.notes,
+        deliveryAddress: cleanDeliveryAddress,
+        paymentMethod: paymentMethod || 'cash',
+        paymentId: paymentId ? paymentId : null,
+        notes: deliveryAddress.notes || '',
         createdAt: new Date(),
         updatedAt: new Date()
       };
+      // Выводим undefined-поля в консоль
+      const undefinedFields = findUndefinedFields(orderData);
+      if (undefinedFields.length > 0) {
+        console.error('В orderData есть undefined поля:', undefinedFields);
+      }
 
       // Сохраняем заказ в Firestore
       await addDoc(collection(db, 'orders'), orderData);
-      
       // Очищаем корзину
       dispatch(clearCart());
       dispatch(toggleCart());
-      
       // Переходим к подтверждению
       setActiveStep(3);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка создания заказа:', error);
-      setError('Ошибка при создании заказа. Попробуйте еще раз.');
+      setError(error?.message || 'Ошибка при создании заказа. Попробуйте еще раз.');
     } finally {
       setLoading(false);
     }
@@ -217,25 +262,50 @@ const CheckoutPage: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               💳 {t('payment_method')}
             </Typography>
-            
             {paymentMethod === PaymentMethod.CARD ? (
-              <CardPayment
-                amount={total}
-                onSuccess={(paymentId) => {
-                  setPaymentId(paymentId);
-                  handleSubmitOrder();
-                }}
-                onError={(error) => setError(error)}
-              />
+              <>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  sx={{ mb: 2 }}
+                  onClick={() => {
+                    setPaymentMethod(PaymentMethod.CASH);
+                    setError('');
+                  }}
+                >
+                  Изменить способ оплаты
+                </Button>
+                <CardPayment
+                  amount={total}
+                  onSuccess={(paymentId) => {
+                    setPaymentId(paymentId);
+                    handleSubmitOrder();
+                  }}
+                  onError={(error) => setError(error)}
+                />
+              </>
             ) : paymentMethod === PaymentMethod.PAYPAL ? (
-              <PayPalPayment
-                amount={total}
-                onSuccess={(paymentId) => {
-                  setPaymentId(paymentId);
-                  handleSubmitOrder();
-                }}
-                onError={(error) => setError(error)}
-              />
+              <>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  sx={{ mb: 2 }}
+                  onClick={() => {
+                    setPaymentMethod(PaymentMethod.CASH);
+                    setError('');
+                  }}
+                >
+                  Изменить способ оплаты
+                </Button>
+                <PayPalPayment
+                  amount={total}
+                  onSuccess={(paymentId) => {
+                    setPaymentId(paymentId);
+                    handleSubmitOrder();
+                  }}
+                  onError={(error) => setError(error)}
+                />
+              </>
             ) : (
               <>
                 <FormControl fullWidth>
@@ -313,6 +383,16 @@ const CheckoutPage: React.FC = () => {
           {t('continue_shopping')}
         </Button>
       </Box>
+    );
+  }
+
+  // Если пользователь гость — показываем AuthPage
+  if (!user || user.isGuest) {
+    return (
+      <AuthPage
+        onBackClick={() => window.history.back()}
+        onAuthSuccess={() => setShowAuth(false)}
+      />
     );
   }
 

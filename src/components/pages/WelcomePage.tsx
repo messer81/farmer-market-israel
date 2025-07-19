@@ -16,6 +16,8 @@ import backgroundImage from '../../assets/images/Farm Sharing background.jpg';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { setLanguage, type Language as LanguageType } from '../../store/slices/languageSlice';
 import i18n from '../../i18n';
+import { loginAsGuest } from '../../store/slices/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 interface WelcomePageProps {
   onLoginClick: () => void;
@@ -28,6 +30,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
   const dispatch = useAppDispatch();
   const currentLanguage = useAppSelector(state => state.language.currentLanguage);
   const [langAnchor, setLangAnchor] = React.useState<null | HTMLElement>(null);
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as LanguageType;
@@ -238,7 +241,8 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
                   backgroundColor: '#4CAF50',
                   '&:hover': { backgroundColor: '#2E7D32' },
                   px: 4,
-                  py: 1.5
+                  py: 1.5,
+                  minWidth: 160
                 }}
               >
                 {t('welcome.login')}
@@ -254,10 +258,31 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
                     backgroundColor: 'rgba(76, 175, 80, 0.1)'
                   },
                   px: 4,
-                  py: 1.5
+                  py: 1.5,
+                  minWidth: 160
                 }}
               >
                 {t('welcome.register')}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  dispatch(loginAsGuest());
+                  navigate('/catalog');
+                }}
+                sx={{
+                  borderColor: '#4CAF50',
+                  color: '#4CAF50',
+                  '&:hover': {
+                    borderColor: '#2E7D32',
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)'
+                  },
+                  px: 4,
+                  py: 1.5,
+                  minWidth: 160
+                }}
+              >
+                Войти как гость
               </Button>
             </Box>
           </Paper>

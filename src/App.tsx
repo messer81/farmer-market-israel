@@ -14,6 +14,7 @@ import SellerStubPage from './components/pages/SellerStubPage';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import backgroundImage from './assets/images/Farm Sharing background.jpg';
+import { Routes, Route, useNavigate, BrowserRouter } from 'react-router-dom';
 
 const theme = createTheme({
   palette: {
@@ -39,7 +40,8 @@ const theme = createTheme({
 const AppContent: React.FC = () => {
   const user = useAppSelector(state => state.user.user);
   const dispatch = useAppDispatch();
-  const [currentPage, setCurrentPage] = useState<'welcomeScreen' | 'welcome' | 'auth' | 'catalog' | 'sellerStub'>('welcomeScreen');
+  // useNavigate для программных переходов
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const token = localStorage.getItem('jwt');
@@ -48,99 +50,37 @@ const AppContent: React.FC = () => {
     }
   }, [dispatch]);
 
-  React.useEffect(() => {
-    if (user) {
-      setCurrentPage('catalog');
-    }
-  }, [user]);
-
-  const handleProfileClick = () => {
-    if (!user) setCurrentPage('auth');
-  };
-
-  const handleLoginClick = () => {
-    setCurrentPage('auth');
-  };
-
-  const handleRegisterClick = () => {
-    setCurrentPage('auth');
-  };
-
-  const handleAuthSuccess = () => {
-    setCurrentPage('catalog');
-  };
-
-  const handleBackToWelcome = () => {
-    setCurrentPage('welcome');
-  };
-
-  // Новый обработчик возврата на WelcomeScreen
-  const handleBackToWelcomeScreen = () => {
-    setCurrentPage('welcomeScreen');
-  };
-
   // Простой роутинг для админки
-  const isAdminPage = window.location.pathname === '/admin';
-
-  if (isAdminPage) {
+  if (window.location.pathname === '/admin') {
     return <AdminPage />;
   }
 
-  // Новый экран WelcomeScreen
-  if (currentPage === 'welcomeScreen') {
-    return (
-      <WelcomeScreen
-        onBuyerClick={() => setCurrentPage('welcome')}
-        onSellerClick={() => setCurrentPage('sellerStub')}
-        // onBack не передаём, чтобы не было кнопки назад на самом первом экране
-      />
-    );
-  }
-
-  // Заглушка для продавца
-  if (currentPage === 'sellerStub') {
-    return <SellerStubPage onBack={() => setCurrentPage('welcomeScreen')} />;
-  }
-
-  // Рендерим страницы в зависимости от состояния
-  if (currentPage === 'welcome') {
-    return (
-      <WelcomePage
-        onLoginClick={handleLoginClick}
-        onRegisterClick={handleRegisterClick}
-        onBack={() => setCurrentPage('welcomeScreen')}
-      />
-    );
-  }
-
-  if (currentPage === 'auth') {
-    return (
-      <AuthPage
-        onBackClick={handleBackToWelcome}
-        onAuthSuccess={handleAuthSuccess}
-      />
-    );
-  }
-
-  // Каталог (после авторизации)
   return (
-    <div
-      className="App"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-        minHeight: '100vh'
-      }}
-    >
-      <div className="content-wrapper">
-        <Header onProfileClick={handleProfileClick} showOnWelcome={false} />
-        <ProductCatalog />
-        <CartDrawer />
-      </div>
-    </div>
+    <Routes>
+      <Route path="/" element={<WelcomeScreen onBuyerClick={() => navigate('/welcome')} onSellerClick={() => navigate('/seller')} />} />
+      <Route path="/welcome" element={<WelcomePage onLoginClick={() => navigate('/auth')} onRegisterClick={() => navigate('/auth')} onBack={() => navigate('/')} />} />
+      <Route path="/auth" element={<AuthPage onBackClick={() => navigate('/welcome')} onAuthSuccess={() => navigate('/catalog')} />} />
+      <Route path="/catalog" element={
+        <div
+          className="App"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+            minHeight: '100vh'
+          }}
+        >
+          <div className="content-wrapper">
+            <Header onProfileClick={() => navigate('/auth')} showOnWelcome={false} />
+            <ProductCatalog />
+            <CartDrawer />
+          </div>
+        </div>
+      } />
+      <Route path="/seller" element={<SellerStubPage onBack={() => navigate('/')} />} />
+    </Routes>
   );
 };
 
@@ -148,7 +88,9 @@ const App: React.FC = () => (
   <Provider store={store}>
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppContent />
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
     </ThemeProvider>
   </Provider>
 );

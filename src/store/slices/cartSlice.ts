@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CartItem, Product } from '../../types';
+import i18n from '../../i18n';
 
 interface CartState {
   items: CartItem[];
@@ -19,10 +20,19 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action: PayloadAction<Product>) => {
       const existingItem = state.items.find(item => item.product.id === action.payload.id);
+      // Определяем язык и формируем name/description
+      const lang = i18n.language || 'en';
+      const p = action.payload as any;
+      const name =
+        (typeof p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`] === 'string' && p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`]) ||
+        p.nameEn || p.nameRu || p.nameHe || '';
+      const description =
+        (typeof p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`] === 'string' && p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`]) ||
+        p.descriptionEn || p.descriptionRu || p.descriptionHe || '';
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
-        state.items.push({ product: action.payload, quantity: 1 });
+        state.items.push({ product: { ...action.payload, name, description }, quantity: 1 });
       }
       state.total = state.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
     },

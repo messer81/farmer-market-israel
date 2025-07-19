@@ -74,7 +74,7 @@ const OrdersExport: React.FC = () => {
     const csvData = [
       [
         'ID заказа',
-        'Дата',
+        'Дата и время',
         'Клиент',
         'Телефон',
         'Адрес',
@@ -93,7 +93,7 @@ const OrdersExport: React.FC = () => {
       
       csvData.push([
         order.id,
-        order.createdAt.toLocaleDateString('ru-RU'),
+        `${order.createdAt.toLocaleDateString('ru-RU')} ${order.createdAt.toLocaleTimeString('ru-RU')}`,
         order.deliveryAddress.name,
         order.deliveryAddress.phone,
         `${order.deliveryAddress.address}, ${order.deliveryAddress.city}`,
@@ -134,7 +134,7 @@ const OrdersExport: React.FC = () => {
     const excelData = [
       [
         'ID заказа',
-        'Дата',
+        'Дата и время',
         'Клиент',
         'Телефон',
         'Адрес',
@@ -153,7 +153,7 @@ const OrdersExport: React.FC = () => {
       
       excelData.push([
         order.id,
-        order.createdAt.toLocaleDateString('ru-RU'),
+        `${order.createdAt.toLocaleDateString('ru-RU')} ${order.createdAt.toLocaleTimeString('ru-RU')}`,
         order.deliveryAddress.name,
         order.deliveryAddress.phone,
         `${order.deliveryAddress.address}, ${order.deliveryAddress.city}`,
@@ -244,7 +244,7 @@ const OrdersExport: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Дата</TableCell>
+                <TableCell>Дата и время</TableCell>
                 <TableCell>Клиент</TableCell>
                 <TableCell>Телефон</TableCell>
                 <TableCell>Адрес</TableCell>
@@ -259,7 +259,7 @@ const OrdersExport: React.FC = () => {
                 <TableRow key={order.id}>
                   <TableCell>{order.id}</TableCell>
                   <TableCell>
-                    {order.createdAt.toLocaleDateString('ru-RU')}
+                    {order.createdAt.toLocaleDateString('ru-RU')} {order.createdAt.toLocaleTimeString('ru-RU')}
                   </TableCell>
                   <TableCell>{order.deliveryAddress.name}</TableCell>
                   <TableCell>{order.deliveryAddress.phone}</TableCell>

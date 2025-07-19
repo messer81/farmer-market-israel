@@ -9,7 +9,9 @@ import {
   Dialog, 
   DialogContent,
   Divider,
-  Alert
+  Alert,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import GoogleLogo from '../common/GoogleLogo';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
@@ -40,9 +42,19 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess }) => {
   const [regPassword, setRegPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useAppDispatch();
   const user = useAppSelector(state => state.user.user);
   const { t } = useTranslation();
+
+  React.useEffect(() => {
+    // Автоматический логин, если есть токен в localStorage
+    const token = localStorage.getItem('jwt');
+    if (token) {
+      dispatch(setToken(token));
+      // Здесь можно добавить логику получения пользователя по токену, если нужно
+    }
+  }, [dispatch]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +73,11 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess }) => {
       }));
       const token = await user.getIdToken();
       dispatch(setToken(token));
-      localStorage.setItem('jwt', token);
+      if (rememberMe) {
+        localStorage.setItem('jwt', token);
+      } else {
+        sessionStorage.setItem('jwt', token);
+      }
       onSuccess?.();
     } catch (err: any) {
       setError(err.message || 'Ошибка входа');
@@ -155,7 +171,7 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess }) => {
         <Tab label={t('login')} />
         <Tab label={t('register')} />
       </Tabs>
-      {user ? (
+      {user && !user.isGuest ? (
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Typography variant="h6">{t('hello')}, {user.name}!</Typography>
           <Typography variant="body2" color="text.secondary">{user.email}</Typography>
@@ -222,6 +238,11 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess }) => {
                 fullWidth
                 margin="normal"
                 required
+              />
+              <FormControlLabel
+                control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />}
+                label={t('remember_me') || 'Запомнить меня'}
+                sx={{ mt: 1 }}
               />
               {error && <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert>}
               <Button

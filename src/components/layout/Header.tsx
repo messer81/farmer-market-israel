@@ -24,6 +24,7 @@ import { clearUser } from '../../store/slices/userSlice';
 import { setLanguage, type Language as LanguageType } from '../../store/slices/languageSlice';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
+import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }> = ({ onProfileClick, showOnWelcome = true }) => {
   const dispatch = useAppDispatch();
@@ -33,6 +34,7 @@ const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }>
   const [langAnchor, setLangAnchor] = React.useState<null | HTMLElement>(null);
   const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as LanguageType;
@@ -155,6 +157,7 @@ const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }>
               <MenuItem disabled>
                 {user.name ? user.name : user.email}
               </MenuItem>
+              <MenuItem onClick={() => { handleProfileClose(); navigate('/orders'); }}>История заказов</MenuItem>
               <MenuItem onClick={handleLogout}>{t('logout')}</MenuItem>
             </>
           )}
