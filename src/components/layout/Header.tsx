@@ -16,11 +16,14 @@ import {
   AccountCircle,
   Agriculture,
   Language,
+  AdminPanelSettings,
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { toggleCart } from '../../store/slices/cartSlice';
 import { clearUser } from '../../store/slices/userSlice';
 import { setLanguage, type Language as LanguageType } from '../../store/slices/languageSlice';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) => {
   const dispatch = useAppDispatch();
@@ -29,6 +32,7 @@ const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) =
   const currentLanguage = useAppSelector(state => state.language.currentLanguage);
   const [langAnchor, setLangAnchor] = React.useState<null | HTMLElement>(null);
   const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
+  const { t } = useTranslation();
 
   React.useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as LanguageType;
@@ -36,6 +40,13 @@ const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) =
       dispatch(setLanguage(savedLanguage));
     }
   }, [dispatch]);
+
+  // Синхронизация языка с i18n
+  React.useEffect(() => {
+    if (currentLanguage && i18n.language !== currentLanguage && i18n.isInitialized) {
+      i18n.changeLanguage(currentLanguage);
+    }
+  }, [currentLanguage]);
 
   const handleCartClick = () => {
     dispatch(toggleCart());
@@ -52,6 +63,9 @@ const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) =
   const handleLanguageSelect = (language: LanguageType) => {
     dispatch(setLanguage(language));
     localStorage.setItem('language', language);
+    if (i18n.isInitialized) {
+      i18n.changeLanguage(language);
+    }
     setLangAnchor(null);
   };
 
@@ -118,6 +132,15 @@ const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) =
           </Badge>
         </IconButton>
 
+        {/* 🛠️ Админка */}
+        <IconButton 
+          color="inherit" 
+          onClick={() => window.open('/admin', '_blank')}
+          title="Панель администратора"
+        >
+          <AdminPanelSettings />
+        </IconButton>
+
         {/* 👤 Профиль */}
         <IconButton color="inherit" onClick={handleProfileMenu}>
           <AccountCircle />
@@ -132,7 +155,7 @@ const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) =
               <MenuItem disabled>
                 {user.name ? user.name : user.email}
               </MenuItem>
-              <MenuItem onClick={handleLogout}>Выйти</MenuItem>
+              <MenuItem onClick={handleLogout}>{t('logout')}</MenuItem>
             </>
           )}
         </Menu>

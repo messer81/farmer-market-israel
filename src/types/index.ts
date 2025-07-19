@@ -26,6 +26,54 @@ export enum ProductCategory {
   FLOWERS = 'flowers'
 }
 
+// 🛒 Заказ
+export interface Order {
+  id: string;
+  userId: string;
+  items: CartItem[];
+  total: number;
+  status: OrderStatus;
+  deliveryAddress: DeliveryAddress;
+  paymentMethod: PaymentMethod;
+  paymentId?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// 📦 Элемент корзины
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+// 🚚 Адрес доставки
+export interface DeliveryAddress {
+  name: string;
+  phone: string;
+  address: string;
+  city: string;
+  zipCode: string;
+  notes?: string;
+}
+
+// 💳 Способ оплаты
+export enum PaymentMethod {
+  CASH = 'cash',
+  CARD = 'card',
+  PAYPAL = 'paypal'
+}
+
+// 📋 Статус заказа
+export enum OrderStatus {
+  PENDING = 'pending',
+  CONFIRMED = 'confirmed',
+  PREPARING = 'preparing',
+  SHIPPING = 'shipping',
+  DELIVERED = 'delivered',
+  CANCELLED = 'cancelled'
+}
+
 // 🛒 Элемент корзины
 export interface CartItem {
   product: Product;

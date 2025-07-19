@@ -85,12 +85,12 @@ const AuthFrame: React.FC = () => {
   return (
     <Box sx={{ width: 350, p: 2 }}>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
-        <Tab label="Вход" />
-        <Tab label="Регистрация" />
+        <Tab label={t('login')} />
+        <Tab label={t('register')} />
       </Tabs>
       {user ? (
         <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Typography variant="h6">Привет, {user.name}!</Typography>
+          <Typography variant="h6">{t('hello')}, {user.name}!</Typography>
           <Typography variant="body2" color="text.secondary">{user.email}</Typography>
           <Button variant="outlined" sx={{ mt: 2 }} onClick={handleLogout}>{t('logout')}</Button>
         </Box>

@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { Product, ProductCategory } from '../../types';
+import { db } from '../../firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 interface ProductsState {
   items: Product[];
@@ -21,9 +23,36 @@ const initialState: ProductsState = {
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async () => {
-    // Временно используем моковые данные из public/mock.json
-    const response = await fetch('/mock.json');
-    return response.json();
+    try {
+      // Загружаем данные из Firestore
+      const querySnapshot = await getDocs(collection(db, 'products'));
+      const products: Product[] = [];
+      
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        products.push({
+          id: doc.id,
+          name: data.name,
+          nameHe: data.nameHe,
+          price: data.price,
+          currency: 'ILS',
+          category: data.category,
+          description: data.description,
+          image: data.image,
+          farmId: data.farmId || '',
+          farmName: data.farmName,
+          location: data.location,
+          organic: data.organic,
+          inStock: data.inStock,
+          unit: data.unit
+        });
+      });
+      
+      return products;
+    } catch (error) {
+      console.error('Ошибка загрузки продуктов:', error);
+      throw error;
+    }
   }
 );
 

@@ -8,6 +8,7 @@ import AuthFrame from './components/pages/AuthFrame';
 import Header from './components/layout/Header';
 import ProductCatalog from './components/pages/ProductCatalog';
 import CartDrawer from './components/common/CartDrawer';
+import AdminPage from './components/pages/AdminPage';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
@@ -48,6 +49,13 @@ const AppContent: React.FC = () => {
   const handleProfileClick = () => {
     if (!user) setAuthOpen(true);
   };
+
+  // Простой роутинг
+  const isAdminPage = window.location.pathname === '/admin';
+
+  if (isAdminPage) {
+    return <AdminPage />;
+  }
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>

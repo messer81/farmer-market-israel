@@ -21,10 +21,12 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { fetchProducts, setSearchTerm, setSelectedCategory } from '../../store/slices/productsSlice';
 import { addToCart } from '../../store/slices/cartSlice';
 import { Product, ProductCategory } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 const ProductCatalog: React.FC = () => {
   const dispatch = useAppDispatch();
   const { items, loading, selectedCategory, searchTerm } = useAppSelector(state => state.products);
+  const { t } = useTranslation();
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -58,7 +60,7 @@ const ProductCatalog: React.FC = () => {
       {/* 🔍 Фильтры */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         <TextField
-          placeholder="חפש מוצרים... Search products..."
+          placeholder={t('search_products')}
           value={searchTerm}
           onChange={(e) => dispatch(setSearchTerm(e.target.value))}
           InputProps={{
@@ -72,12 +74,12 @@ const ProductCatalog: React.FC = () => {
         />
         
         <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>קטגוריה Category</InputLabel>
+          <InputLabel>{t('category')}</InputLabel>
           <Select
             value={selectedCategory || ''}
             onChange={(e) => dispatch(setSelectedCategory(e.target.value as ProductCategory || null))}
           >
-            <MenuItem value="">🌾 All Categories</MenuItem>
+            <MenuItem value="">🌾 {t('all_categories')}</MenuItem>
             {Object.values(ProductCategory).map(category => (
               <MenuItem key={category} value={category}>
                 {getCategoryEmoji(category)} {category}
@@ -131,7 +133,7 @@ const ProductCatalog: React.FC = () => {
                   disabled={!product.inStock}
                   sx={{ backgroundColor: '#4CAF50' }}
                 >
-                  {product.inStock ? 'הוסף לסל Add to Cart' : 'אזל במלאי Out of Stock'}
+                  {product.inStock ? t('add_to_cart') : 'אזל במלאי Out of Stock'}
                 </Button>
               </Box>
             </Card>
