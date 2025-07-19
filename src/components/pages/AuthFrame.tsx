@@ -1,13 +1,37 @@
 import React, { useState } from 'react';
-import { Box, Tabs, Tab, TextField, Button, Typography } from '@mui/material';
+import { 
+  Box, 
+  Tabs, 
+  Tab, 
+  TextField, 
+  Button, 
+  Typography, 
+  Dialog, 
+  DialogContent,
+  Divider,
+  Alert
+} from '@mui/material';
+import GoogleLogo from '../common/GoogleLogo';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { setUser, clearUser, setToken } from '../../store/slices/userSlice';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup
+} from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { useTranslation } from 'react-i18next';
 
-const AuthFrame: React.FC = () => {
+interface AuthFrameProps {
+  open?: boolean;
+  onClose?: () => void;
+  onSuccess?: () => void;
+}
+
+const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess }) => {
   const [tab, setTab] = useState(0);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -38,6 +62,7 @@ const AuthFrame: React.FC = () => {
       const token = await user.getIdToken();
       dispatch(setToken(token));
       localStorage.setItem('jwt', token);
+      onSuccess?.();
     } catch (err: any) {
       setError(err.message || 'Ошибка входа');
     } finally {
@@ -68,9 +93,51 @@ const AuthFrame: React.FC = () => {
       const token = await user.getIdToken();
       dispatch(setToken(token));
       localStorage.setItem('jwt', token);
-      // (Опционально) здесь можно добавить сохранение профиля в Firestore
+      onSuccess?.();
     } catch (err: any) {
       setError(err.message || 'Ошибка регистрации');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Проверяем, есть ли уже профиль пользователя
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      
+      if (!userDoc.exists()) {
+        // Создаем новый профиль
+        await setDoc(doc(db, 'users', user.uid), {
+          name: user.displayName || 'Пользователь',
+          email: user.email,
+          photoURL: user.photoURL,
+          createdAt: new Date()
+        });
+      }
+      
+      dispatch(setUser({
+        id: user.uid,
+        name: user.displayName || 'Пользователь',
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+        address: '',
+        preferredLanguage: 'ru' as const
+      }));
+      
+      const token = await user.getIdToken();
+      dispatch(setToken(token));
+      localStorage.setItem('jwt', token);
+      onSuccess?.();
+    } catch (err: any) {
+      console.error('Google auth error:', err);
+      setError(err.message || 'Ошибка авторизации через Google');
     } finally {
       setLoading(false);
     }
@@ -82,8 +149,8 @@ const AuthFrame: React.FC = () => {
     localStorage.removeItem('jwt');
   };
 
-  return (
-    <Box sx={{ width: 350, p: 2 }}>
+  const content = (
+    <Box sx={{ width: 400, p: 3 }}>
       <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
         <Tab label={t('login')} />
         <Tab label={t('register')} />
@@ -96,8 +163,48 @@ const AuthFrame: React.FC = () => {
         </Box>
       ) : (
         <>
+          {/* Google кнопка */}
+          <Box sx={{ mt: 3, mb: 2 }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<GoogleLogo />}
+              onClick={handleGoogleAuth}
+              disabled={loading}
+              sx={{
+                borderColor: '#4285F4',
+                color: '#4285F4',
+                fontWeight: 500,
+                fontSize: '0.95rem',
+                borderRadius: 2,
+                boxShadow: '0 2px 4px rgba(66, 133, 244, 0.1)',
+                '&:hover': {
+                  borderColor: '#3367D6',
+                  backgroundColor: 'rgba(66, 133, 244, 0.08)',
+                  boxShadow: '0 4px 8px rgba(66, 133, 244, 0.2)',
+                  transform: 'translateY(-1px)'
+                },
+                '&:disabled': {
+                  borderColor: '#ccc',
+                  color: '#999',
+                  backgroundColor: '#f5f5f5'
+                },
+                py: 1.5,
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              {t('google_auth')}
+            </Button>
+          </Box>
+
+          <Divider sx={{ my: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('or')}
+            </Typography>
+          </Divider>
+
           {tab === 0 && (
-            <form onSubmit={handleLogin} style={{ marginTop: 24 }}>
+            <form onSubmit={handleLogin} style={{ marginTop: 16 }}>
               <TextField
                 label={t('email')}
                 type="email"
@@ -116,7 +223,7 @@ const AuthFrame: React.FC = () => {
                 margin="normal"
                 required
               />
-              {error && <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>}
+              {error && <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert>}
               <Button
                 type="submit"
                 variant="contained"
@@ -130,7 +237,7 @@ const AuthFrame: React.FC = () => {
             </form>
           )}
           {tab === 1 && (
-            <form onSubmit={handleRegister} style={{ marginTop: 24 }}>
+            <form onSubmit={handleRegister} style={{ marginTop: 16 }}>
               <TextField
                 label={t('name')}
                 value={regName}
@@ -157,7 +264,7 @@ const AuthFrame: React.FC = () => {
                 margin="normal"
                 required
               />
-              {error && <Typography color="error" sx={{ mt: 1 }}>{error}</Typography>}
+              {error && <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert>}
               <Button
                 type="submit"
                 variant="contained"
@@ -174,6 +281,20 @@ const AuthFrame: React.FC = () => {
       )}
     </Box>
   );
+
+  // Если передан open, показываем как диалог
+  if (open !== undefined) {
+    return (
+      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <DialogContent>
+          {content}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Иначе показываем как обычный компонент
+  return content;
 };
 
 export default AuthFrame; 

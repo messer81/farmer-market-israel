@@ -58,7 +58,7 @@ const ProductCatalog: React.FC = () => {
   return (
     <Box sx={{ padding: 3 }}>
       {/* 🔍 Фильтры */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
         <TextField
           placeholder={t('search_products')}
           value={searchTerm}

@@ -3,15 +3,15 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import { useAppSelector, useAppDispatch } from './hooks/redux';
 import { setToken } from './store/slices/userSlice';
-import Dialog from '@mui/material/Dialog';
-import AuthFrame from './components/pages/AuthFrame';
 import Header from './components/layout/Header';
 import ProductCatalog from './components/pages/ProductCatalog';
 import CartDrawer from './components/common/CartDrawer';
 import AdminPage from './components/pages/AdminPage';
+import WelcomePage from './components/pages/WelcomePage';
+import AuthPage from './components/pages/AuthPage';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import Box from '@mui/material/Box';
+import backgroundImage from './assets/images/Farm Sharing background.jpg';
 
 const theme = createTheme({
   palette: {
@@ -37,7 +37,7 @@ const theme = createTheme({
 const AppContent: React.FC = () => {
   const user = useAppSelector(state => state.user.user);
   const dispatch = useAppDispatch();
-  const [authOpen, setAuthOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'welcome' | 'auth' | 'catalog'>('welcome');
 
   React.useEffect(() => {
     const token = localStorage.getItem('jwt');
@@ -46,26 +46,78 @@ const AppContent: React.FC = () => {
     }
   }, [dispatch]);
 
+  React.useEffect(() => {
+    // Если пользователь авторизован, показываем каталог
+    if (user) {
+      setCurrentPage('catalog');
+    }
+  }, [user]);
+
   const handleProfileClick = () => {
-    if (!user) setAuthOpen(true);
+    if (!user) setCurrentPage('auth');
   };
 
-  // Простой роутинг
+  const handleLoginClick = () => {
+    setCurrentPage('auth');
+  };
+
+  const handleRegisterClick = () => {
+    setCurrentPage('auth');
+  };
+
+  const handleAuthSuccess = () => {
+    setCurrentPage('catalog');
+  };
+
+  const handleBackToWelcome = () => {
+    setCurrentPage('welcome');
+  };
+
+  // Простой роутинг для админки
   const isAdminPage = window.location.pathname === '/admin';
 
   if (isAdminPage) {
     return <AdminPage />;
   }
 
+  // Рендерим страницы в зависимости от состояния
+  if (currentPage === 'welcome') {
+    return (
+      <WelcomePage 
+        onLoginClick={handleLoginClick}
+        onRegisterClick={handleRegisterClick}
+      />
+    );
+  }
+
+  if (currentPage === 'auth') {
+    return (
+      <AuthPage 
+        onBackClick={handleBackToWelcome}
+        onAuthSuccess={handleAuthSuccess}
+      />
+    );
+  }
+
+  // Каталог (после авторизации)
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Header onProfileClick={handleProfileClick} />
-      <ProductCatalog />
-      <CartDrawer />
-      <Dialog open={authOpen} onClose={() => setAuthOpen(false)}>
-        <AuthFrame />
-      </Dialog>
-    </Box>
+    <div 
+      className="App"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        minHeight: '100vh'
+      }}
+    >
+      <div className="content-wrapper">
+        <Header onProfileClick={handleProfileClick} showOnWelcome={false} />
+        <ProductCatalog />
+        <CartDrawer />
+      </div>
+    </div>
   );
 };
 

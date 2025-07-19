@@ -13,12 +13,14 @@ import {
   CircularProgress,
   Alert,
   Chip,
+  ButtonGroup,
 } from '@mui/material';
-import { Download, Refresh } from '@mui/icons-material';
+import { Download, Refresh, TableChart } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import { db } from '../../firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Order, OrderStatus, PaymentMethod } from '../../types';
+import * as XLSX from 'xlsx';
 
 const OrdersExport: React.FC = () => {
   const { t } = useTranslation();
@@ -103,12 +105,18 @@ const OrdersExport: React.FC = () => {
       ]);
     });
 
-    // Создаем CSV файл
+    // Создаем CSV файл с правильной кодировкой
     const csvContent = csvData.map(row => 
       row.map(cell => `"${cell}"`).join(',')
     ).join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Добавляем BOM для правильной кодировки UTF-8
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csvContent;
+
+    const blob = new Blob([csvWithBOM], { 
+      type: 'text/csv;charset=utf-8;' 
+    });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -117,6 +125,53 @@ const OrdersExport: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const exportToExcel = () => {
+    if (orders.length === 0) return;
+
+    // Подготавливаем данные для Excel
+    const excelData = [
+      [
+        'ID заказа',
+        'Дата',
+        'Клиент',
+        'Телефон',
+        'Адрес',
+        'Способ оплаты',
+        'Статус',
+        'Сумма',
+        'Товары',
+        'Примечания'
+      ]
+    ];
+
+    orders.forEach(order => {
+      const itemsText = order.items.map(item => 
+        `${item.product.name} x${item.quantity}`
+      ).join('; ');
+      
+      excelData.push([
+        order.id,
+        order.createdAt.toLocaleDateString('ru-RU'),
+        order.deliveryAddress.name,
+        order.deliveryAddress.phone,
+        `${order.deliveryAddress.address}, ${order.deliveryAddress.city}`,
+        order.paymentMethod,
+        order.status,
+        `₪${order.total.toFixed(2)}`,
+        itemsText,
+        order.notes || ''
+      ]);
+    });
+
+    // Создаем рабочую книгу Excel
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Заказы');
+
+    // Экспортируем файл
+    XLSX.writeFile(wb, `orders_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const getStatusColor = (status: OrderStatus) => {
@@ -155,14 +210,22 @@ const OrdersExport: React.FC = () => {
         >
           Обновить
         </Button>
-        <Button
-          variant="outlined"
-          startIcon={<Download />}
-          onClick={exportToCSV}
-          disabled={orders.length === 0}
-        >
-          Экспорт в CSV
-        </Button>
+        <ButtonGroup variant="outlined">
+          <Button
+            startIcon={<Download />}
+            onClick={exportToCSV}
+            disabled={orders.length === 0}
+          >
+            CSV
+          </Button>
+          <Button
+            startIcon={<TableChart />}
+            onClick={exportToExcel}
+            disabled={orders.length === 0}
+          >
+            Excel
+          </Button>
+        </ButtonGroup>
       </Box>
 
       {error && (

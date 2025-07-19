@@ -53,7 +53,18 @@ const resources = {
       'test_card_number': 'Тестовый номер карты',
       'test_expiry': 'Тестовый срок действия',
       'test_cvc': 'Тестовый CVC',
-      'paypal_test_info': 'Используйте тестовый аккаунт PayPal для демонстрации'
+      'paypal_test_info': 'Используйте тестовый аккаунт PayPal для демонстрации',
+      'google_auth': 'Продолжить с Google',
+      'or': 'или',
+      'google_auth_info': 'Также доступна быстрая авторизация через Google',
+      'welcome.title': 'Farm Market Israel',
+      'welcome.subtitle': 'Welcome to the freshest local produce marketplace',
+      'welcome.description': 'Discover fresh, organic produce directly from local farmers. Support local agriculture and enjoy the best quality fruits, vegetables, and dairy products from across Israel.',
+      'welcome.features.fresh': 'Fresh from Farm',
+      'welcome.features.shopping': 'Easy Shopping',
+      'welcome.features.delivery': 'Fast Delivery',
+      'welcome.login': 'Войти / Login',
+      'welcome.register': 'Регистрация / Register'
     }
   },
   en: {
@@ -107,7 +118,18 @@ const resources = {
       'test_card_number': 'Test Card Number',
       'test_expiry': 'Test Expiry',
       'test_cvc': 'Test CVC',
-      'paypal_test_info': 'Use PayPal test account for demonstration'
+      'paypal_test_info': 'Use PayPal test account for demonstration',
+      'google_auth': 'Continue with Google',
+      'or': 'or',
+      'google_auth_info': 'Quick authentication with Google is also available',
+      'welcome.title': 'Farm Market Israel',
+      'welcome.subtitle': 'Welcome to the freshest local produce marketplace',
+      'welcome.description': 'Discover fresh, organic produce directly from local farmers. Support local agriculture and enjoy the best quality fruits, vegetables, and dairy products from across Israel.',
+      'welcome.features.fresh': 'Fresh from Farm',
+      'welcome.features.shopping': 'Easy Shopping',
+      'welcome.features.delivery': 'Fast Delivery',
+      'welcome.login': 'Login',
+      'welcome.register': 'Register'
     }
   },
   he: {
@@ -161,7 +183,18 @@ const resources = {
       'test_card_number': 'מספר כרטיס בדיקה',
       'test_expiry': 'תאריך תפוגה לבדיקה',
       'test_cvc': 'CVC לבדיקה',
-      'paypal_test_info': 'השתמש בחשבון PayPal בדיקה להדגמה'
+      'paypal_test_info': 'השתמש בחשבון PayPal בדיקה להדגמה',
+      'google_auth': 'המשך עם Google',
+      'or': 'או',
+      'google_auth_info': 'אימות מהיר עם Google זמין גם כן',
+      'welcome.title': 'שוק החקלאי ישראל',
+      'welcome.subtitle': 'ברוכים הבאים לשוק התוצרת המקומית הטרייה ביותר',
+      'welcome.description': 'גלה תוצרת טרייה ואורגנית ישירות מחקלאים מקומיים. תמוך בחקלאות מקומית ותיהנה מהפירות, הירקות ומוצרי החלב באיכות הטובה ביותר בישראל.',
+      'welcome.features.fresh': 'טרי מהחווה',
+      'welcome.features.shopping': 'קניות קלות',
+      'welcome.features.delivery': 'משלוח מהיר',
+      'welcome.login': 'התחבר',
+      'welcome.register': 'הרשמה'
     }
   }
 };

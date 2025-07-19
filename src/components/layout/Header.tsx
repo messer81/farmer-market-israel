@@ -25,7 +25,7 @@ import { setLanguage, type Language as LanguageType } from '../../store/slices/l
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 
-const Header: React.FC<{ onProfileClick?: () => void }> = ({ onProfileClick }) => {
+const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }> = ({ onProfileClick, showOnWelcome = true }) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector(state => state.cart.items);
   const user = useAppSelector(state => state.user.user);
