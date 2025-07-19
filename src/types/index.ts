@@ -2,11 +2,16 @@
 export interface Product {
   id: string;
   name: string;
-  nameHe: string;          // Название на иврите
+  nameEn?: string;           // Название на английском
+  nameRu?: string;           // Название на русском
+  nameHe: string;            // Название на иврите
   price: number;
   currency: 'ILS' | 'USD'; // Шекели или доллары
   category: ProductCategory;
   description: string;
+  descriptionEn?: string;    // Описание на английском
+  descriptionRu?: string;    // Описание на русском
+  descriptionHe?: string;    // Описание на иврите
   image: string;
   farmId: string;
   farmName: string;
@@ -102,4 +107,5 @@ export interface User {
   phone: string;
   address: string;
   preferredLanguage: 'he' | 'en' | 'ru';
+  isGuest?: boolean; // Гостевой пользователь
 } 

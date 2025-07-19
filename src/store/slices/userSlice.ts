@@ -7,7 +7,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  user: null,
+  user: null, // null = гость
   token: null,
 };
 
@@ -28,8 +28,20 @@ const userSlice = createSlice({
     clearToken: (state) => {
       state.token = null;
     },
+    loginAsGuest: (state) => {
+      state.user = {
+        id: 'guest',
+        name: 'Гость',
+        email: '',
+        phone: '',
+        address: '',
+        preferredLanguage: 'ru',
+        isGuest: true
+      };
+      state.token = null;
+    },
   },
 });
 
-export const { setUser, clearUser, setToken, clearToken } = userSlice.actions;
+export const { setUser, clearUser, setToken, clearToken, loginAsGuest } = userSlice.actions;
 export default userSlice.reducer; 

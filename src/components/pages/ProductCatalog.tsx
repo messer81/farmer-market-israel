@@ -34,9 +34,13 @@ const ProductCatalog: React.FC = () => {
   }, [dispatch]);
 
   const filteredProducts = items.filter(product => {
-    const matchesCategory = !selectedCategory || product.category === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.nameHe.includes(searchTerm);
+    const p = product as any;
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    const search = searchTerm.toLowerCase();
+    const matchesSearch =
+      (typeof p.nameRu === 'string' && p.nameRu.toLowerCase().includes(search)) ||
+      (typeof p.nameEn === 'string' && p.nameEn.toLowerCase().includes(search)) ||
+      (typeof p.nameHe === 'string' && p.nameHe.includes(search));
     return matchesCategory && matchesSearch;
   });
 
@@ -114,8 +118,13 @@ const ProductCatalog: React.FC = () => {
       <Grid container spacing={3} justifyContent="center">
         {filteredProducts.map((product) => {
           const p = product as any; // для доступа к динамическим полям
-          const name = p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || p.nameEn || p.nameRu || p.nameHe;
-          const description = p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || p.descriptionEn || p.descriptionRu || p.descriptionHe;
+          const lang = i18n.language || 'en';
+          const name =
+            (typeof p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`] === 'string' && p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`]) ||
+            p.nameEn || p.nameRu || p.nameHe || '';
+          const description =
+            (typeof p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`] === 'string' && p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`]) ||
+            p.descriptionEn || p.descriptionRu || p.descriptionHe || '';
           return (
             <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
               <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
