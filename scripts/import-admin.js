@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 const fs = require('fs');
-const serviceAccount = require('../farmer-market-israel-1877ddaaabbf.json');
+const serviceAccount = require('../farmer-market-israel-bce719b08775.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
