@@ -22,6 +22,7 @@ import { fetchProducts, setSearchTerm, setSelectedCategory } from '../../store/s
 import { addToCart } from '../../store/slices/cartSlice';
 import { Product, ProductCategory } from '../../types';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
 
 const ProductCatalog: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -54,6 +55,8 @@ const ProductCatalog: React.FC = () => {
     };
     return emojis[category] || '🌾';
   };
+
+  const lang = i18n.language || 'en';
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -108,55 +111,60 @@ const ProductCatalog: React.FC = () => {
       </Box>
 
       {/* 📦 Каталог продуктов */}
-      <Grid container spacing={3}>
-        {filteredProducts.map((product) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardMedia
-                component="img"
-                height="200"
-                image={product.image}
-                alt={product.name}
-              />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" component="h2" gutterBottom>
-                  {getCategoryEmoji(product.category)} {product.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {product.nameHe}
-                </Typography>
+      <Grid container spacing={3} justifyContent="center">
+        {filteredProducts.map((product) => {
+          const p = product as any; // для доступа к динамическим полям
+          const name = p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || p.nameEn || p.nameRu || p.nameHe;
+          const description = p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`] || p.descriptionEn || p.descriptionRu || p.descriptionHe;
+          return (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={p.id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={p.image}
+                  alt={name}
+                />
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" component="h2" gutterBottom>
+                    {getCategoryEmoji(p.category)} {name}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {description}
+                  </Typography>
+                  
+                  <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+                    {p.organic && (
+                      <Chip icon={<Spa />} label="Organic" size="small" color="success" />
+                    )}
+                    <Chip icon={<Store />} label={p.farmName} size="small" variant="outlined" />
+                  </Box>
+                  
+                  <Typography variant="h6" color="primary" gutterBottom>
+                    ₪{p.price} / {p.unit}
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary">
+                    📍 {p.location}
+                  </Typography>
+                </CardContent>
                 
-                <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-                  {product.organic && (
-                    <Chip icon={<Spa />} label="Organic" size="small" color="success" />
-                  )}
-                  <Chip icon={<Store />} label={product.farmName} size="small" variant="outlined" />
+                <Box sx={{ p: 2, pt: 0 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Add />}
+                    onClick={() => handleAddToCart(product)}
+                    disabled={!product.inStock}
+                    sx={{ backgroundColor: '#4CAF50' }}
+                  >
+                    {product.inStock ? t('add_to_cart') : 'אזל במלאי Out of Stock'}
+                  </Button>
                 </Box>
-                
-                <Typography variant="h6" color="primary" gutterBottom>
-                  ₪{product.price} / {product.unit}
-                </Typography>
-                
-                <Typography variant="body2" color="text.secondary">
-                  📍 {product.location}
-                </Typography>
-              </CardContent>
-              
-              <Box sx={{ p: 2, pt: 0 }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<Add />}
-                  onClick={() => handleAddToCart(product)}
-                  disabled={!product.inStock}
-                  sx={{ backgroundColor: '#4CAF50' }}
-                >
-                  {product.inStock ? t('add_to_cart') : 'אזל במלאי Out of Stock'}
-                </Button>
-              </Box>
-            </Card>
-          </Grid>
-        ))}
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
     </Box>
   );
