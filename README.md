@@ -1,46 +1,188 @@
-# Getting Started with Create React App
+# 🌾 Farm Market Israel
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Современная платформа для фермерского рынка с поддержкой многоязычности и удобной системой заказов.
 
-## Available Scripts
+![Farm Market Israel](src/assets/images/Farm Sharing background.jpg)
 
-In the project directory, you can run:
+## 🚀 Особенности
 
-### `npm start`
+- ✅ **Многоязычность** - Русский, Английский, Иврит
+- ✅ **Google авторизация** - Быстрый вход через Google
+- ✅ **Firebase интеграция** - Надежная база данных
+- ✅ **Красивый UI** - Современный дизайн с анимациями
+- ✅ **Система заказов** - Полный цикл от корзины до доставки
+- ✅ **Админ панель** - Управление заказами и экспорт данных
+- ✅ **Адаптивность** - Работает на всех устройствах
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## 🛠️ Технологии
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- **Frontend:** React 18 + TypeScript
+- **UI Framework:** Material-UI (MUI)
+- **State Management:** Redux Toolkit
+- **Backend:** Firebase (Auth, Firestore)
+- **Интернационализация:** i18next
+- **Сборка:** Vite
 
-### `npm test`
+## 📦 Установка и запуск
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+# Клонирование репозитория
+git clone https://github.com/your-username/farmer-market-israel.git
+cd farmer-market-israel
 
-### `npm run build`
+# Установка зависимостей
+npm install
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Запуск в режиме разработки
+npm run dev
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Сборка для продакшена
+npm run build
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🏗️ Архитектура проекта
 
-### `npm run eject`
+```
+src/
+├── components/
+│   ├── common/           # Общие компоненты
+│   ├── layout/           # Макет и навигация
+│   └── pages/            # Страницы приложения
+├── store/                # Redux состояние
+├── firebase.ts           # Firebase конфигурация
+├── i18n.ts              # Интернационализация
+└── types/               # TypeScript типы
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 🔐 Система авторизации
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Способы входа:
+- **Email/Пароль** - Классическая регистрация
+- **Google OAuth** - Быстрый вход через Google
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Безопасность:
+- JWT токены для сессий
+- Firebase Security Rules
+- Валидация форм на клиенте
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## 🛒 Функциональность
 
-## Learn More
+### Для пользователей:
+1. **Стартовая страница** - Приветствие и выбор языка
+2. **Авторизация** - Вход/регистрация
+3. **Каталог товаров** - Просмотр и поиск
+4. **Корзина** - Добавление товаров
+5. **Оформление заказа** - Доставка и оплата
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Для администраторов:
+1. **Админ панель** - `/admin`
+2. **Управление заказами** - Просмотр всех заказов
+3. **Экспорт данных** - Excel/CSV форматы
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🌐 Многоязычность
+
+Поддерживаемые языки:
+- 🇷🇺 **Русский** - Основной язык
+- 🇺🇸 **English** - Международный
+- 🇮🇱 **עברית** - Локальный
+
+## 💳 Система оплаты
+
+### Поддерживаемые способы:
+- 💰 **Наличные** - При доставке
+- 💳 **Банковская карта** - Онлайн оплата
+- 🅿️ **PayPal** - Международные платежи
+
+## 📊 Экспорт данных
+
+### Форматы экспорта:
+- 📄 **CSV** - Универсальный формат
+- 📊 **Excel** - Нативный формат Excel
+
+### Данные для экспорта:
+- ID заказа
+- Дата создания
+- Данные клиента
+- Список товаров
+- Сумма заказа
+- Статус доставки
+
+## 🔧 Конфигурация Firebase
+
+```typescript
+// src/firebase.ts
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-domain.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-bucket.appspot.com",
+  messagingSenderId: "your-sender-id",
+  appId: "your-app-id"
+};
+```
+
+## 🎨 Дизайн
+
+### Цветовая схема:
+- 🟢 **Основной:** #4CAF50 (Зеленый)
+- 🟦 **Акцент:** #2196F3 (Синий)
+- 🟠 **Предупреждение:** #FF9800 (Оранжевый)
+
+### Особенности:
+- Сельскохозяйственный фон
+- Плавные анимации
+- Адаптивный дизайн
+- Material Design принципы
+
+## 📱 Адаптивность
+
+- 📱 **Мобильные устройства** - Оптимизировано
+- 💻 **Планшеты** - Адаптивная сетка
+- 🖥️ **Десктоп** - Полнофункциональный интерфейс
+
+## 🚀 Развертывание
+
+### Firebase Hosting:
+```bash
+# Установка Firebase CLI
+npm install -g firebase-tools
+
+# Логин в Firebase
+firebase login
+
+# Инициализация проекта
+firebase init hosting
+
+# Деплой
+firebase deploy
+```
+
+### Vercel:
+```bash
+# Установка Vercel CLI
+npm i -g vercel
+
+# Деплой
+vercel
+```
+
+## 🤝 Вклад в проект
+
+1. Форкните репозиторий
+2. Создайте ветку для новой функции
+3. Внесите изменения
+4. Создайте Pull Request
+
+## 📄 Лицензия
+
+MIT License - см. файл [LICENSE](LICENSE)
+
+## 📞 Поддержка
+
+- 📧 Email: support@farmmarket.com
+- 💬 Telegram: @farmmarket_support
+- 🌐 Website: https://farmmarket.com
+
+---
+
+**Сделано с ❤️ для фермерского сообщества Израиля**
