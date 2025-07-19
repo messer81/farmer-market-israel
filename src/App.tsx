@@ -11,6 +11,7 @@ import WelcomePage from './components/pages/WelcomePage';
 import AuthPage from './components/pages/AuthPage';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import SellerStubPage from './components/pages/SellerStubPage';
+import OrderHistory from './components/pages/OrderHistory';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import backgroundImage from './assets/images/Farm Sharing background.jpg';
@@ -80,6 +81,7 @@ const AppContent: React.FC = () => {
         </div>
       } />
       <Route path="/seller" element={<SellerStubPage onBack={() => navigate('/')} />} />
+      <Route path="/orders" element={<OrderHistory />} />
     </Routes>
   );
 };

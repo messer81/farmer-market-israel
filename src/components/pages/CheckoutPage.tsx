@@ -113,6 +113,8 @@ const CheckoutPage: React.FC = () => {
     }
 
     try {
+      // Диагностика: выводим user.id и user.email
+      console.log('Оформление заказа: user.id =', user?.id, 'user.email =', user?.email);
       // Очищаем deliveryAddress от undefined
       const cleanDeliveryAddress = Object.fromEntries(
         Object.entries(deliveryAddress).map(([k, v]) => [k, v === undefined ? '' : v])
