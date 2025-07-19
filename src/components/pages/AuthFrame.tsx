@@ -21,7 +21,8 @@ import {
   signInWithEmailAndPassword, 
   signOut,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
@@ -41,8 +42,10 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const dispatch = useAppDispatch();
   const user = useAppSelector(state => state.user.user);
@@ -160,6 +163,23 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setSuccess(t('reset_password_sent'));
+      setResetEmail('');
+    } catch (err: any) {
+      setError(err.message || t('reset_password_error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     await signOut(auth);
     dispatch(clearUser());
@@ -167,10 +187,41 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
   };
 
   const content = (
-    <Box sx={{ width: 400, p: 3 }}>
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} centered>
-        <Tab label={t('login')} />
-        <Tab label={t('register')} />
+    <Box sx={{ width: 450, p: 3 }}>
+      <Tabs 
+        value={tab} 
+        onChange={(_, v) => setTab(v)} 
+        variant="scrollable"
+        scrollButtons="auto"
+        sx={{
+          '& .MuiTab-root': {
+            color: '#666',
+            fontSize: '0.85rem',
+            fontWeight: 500,
+            textTransform: 'none',
+            minHeight: 48,
+            minWidth: 'auto',
+            padding: '6px 12px',
+            '&.Mui-selected': {
+              color: '#4CAF50',
+              fontWeight: 600
+            }
+          },
+          '& .MuiTabs-indicator': {
+            backgroundColor: '#4CAF50',
+            height: 3
+          },
+          '& .MuiTabs-scrollButtons': {
+            color: '#666',
+            '&.Mui-disabled': {
+              opacity: 0.3
+            }
+          }
+        }}
+      >
+        <Tab label={t('login_short')} />
+        <Tab label={t('register_short')} />
+        <Tab label={t('forgot_password_short')} />
       </Tabs>
       {user && !user.isGuest ? (
         <Box sx={{ mt: 3, textAlign: 'center' }}>
@@ -240,11 +291,31 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
                 margin="normal"
                 required
               />
-              <FormControlLabel
-                control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />}
-                label={t('remember_me') || 'Запомнить меня'}
-                sx={{ mt: 1 }}
-              />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, mb: 1 }}>
+                <FormControlLabel
+                  control={<Checkbox checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />}
+                  label={t('remember_me')}
+                  sx={{ flex: 1 }}
+                />
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={() => setTab(2)}
+                  sx={{ 
+                    color: '#4CAF50',
+                    textTransform: 'none',
+                    fontSize: '0.875rem',
+                    minWidth: 'auto',
+                    padding: '4px 8px',
+                    '&:hover': {
+                      backgroundColor: 'rgba(76, 175, 80, 0.08)',
+                      textDecoration: 'underline'
+                    }
+                  }}
+                >
+                  {t('forgot_password')}
+                </Button>
+              </Box>
               {error && <Alert severity="error" sx={{ mt: 1 }}>{error}</Alert>}
               <Button
                 type="submit"
@@ -296,6 +367,60 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
                 disabled={loading}
               >
                 {t('register')}
+              </Button>
+            </form>
+          )}
+          {tab === 2 && (
+            <form onSubmit={handlePasswordReset} style={{ marginTop: 16 }}>
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <Typography variant="h6" color="primary" gutterBottom>
+                  {t('reset_password')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('reset_password_description')}
+                </Typography>
+              </Box>
+              <TextField
+                label={t('email')}
+                type="email"
+                value={resetEmail}
+                onChange={e => setResetEmail(e.target.value)}
+                fullWidth
+                margin="normal"
+                required
+                sx={{ mb: 2 }}
+              />
+              {error && <Alert severity="error" sx={{ mt: 1, mb: 2 }}>{error}</Alert>}
+              {success && <Alert severity="success" sx={{ mt: 1, mb: 2 }}>{success}</Alert>}
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ 
+                  mt: 2, 
+                  mb: 2,
+                  py: 1.5,
+                  backgroundColor: '#4CAF50',
+                  '&:hover': { backgroundColor: '#2E7D32' }
+                }}
+                disabled={loading}
+              >
+                {loading ? t('sending') : t('send_reset_link')}
+              </Button>
+              <Button
+                variant="text"
+                fullWidth
+                onClick={() => setTab(0)}
+                sx={{ 
+                  color: '#666',
+                  '&:hover': { 
+                    backgroundColor: 'rgba(102, 102, 102, 0.08)',
+                    textDecoration: 'underline'
+                  }
+                }}
+              >
+                {t('back_to_login')}
               </Button>
             </form>
           )}

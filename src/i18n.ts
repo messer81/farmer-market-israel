@@ -67,7 +67,19 @@ const resources = {
       'welcome.register': 'Регистрация / Register',
       'welcomeScreen.title': 'Добро пожаловать!',
       'welcomeScreen.buyer': 'Начать покупки',
-      'welcomeScreen.seller': 'Начать продажи'
+      'welcomeScreen.seller': 'Начать продажи',
+      'forgot_password': 'Забыли пароль?',
+      'reset_password': 'Сбросить пароль',
+      'reset_password_sent': 'Письмо для сброса пароля отправлено на ваш email!',
+      'reset_password_error': 'Ошибка отправки письма для сброса пароля',
+      'reset_password_description': 'Введите ваш email, и мы отправим вам ссылку для сброса пароля',
+      'send_reset_link': 'Отправить ссылку для сброса',
+      'sending': 'Отправка...',
+      'back_to_login': 'Вернуться к входу',
+      'remember_me': 'Запомнить меня',
+      'login_short': 'Войти',
+      'register_short': 'Регистрация',
+      'forgot_password_short': 'Забыли пароль?'
     }
   },
   en: {
@@ -135,7 +147,19 @@ const resources = {
       'welcome.register': 'Register',
       'welcomeScreen.title': 'Welcome!',
       'welcomeScreen.buyer': 'Start buying products',
-      'welcomeScreen.seller': 'Start selling products'
+      'welcomeScreen.seller': 'Start selling products',
+      'forgot_password': 'Forgot Password?',
+      'reset_password': 'Reset Password',
+      'reset_password_sent': 'Password reset email sent to your email!',
+      'reset_password_error': 'Error sending password reset email',
+      'reset_password_description': 'Enter your email and we will send you a link to reset your password',
+      'send_reset_link': 'Send Reset Link',
+      'sending': 'Sending...',
+      'back_to_login': 'Back to Login',
+      'remember_me': 'Remember Me',
+      'login_short': 'Login',
+      'register_short': 'Register',
+      'forgot_password_short': 'Forgot Password?'
     }
   },
   he: {
@@ -203,7 +227,19 @@ const resources = {
       'welcome.register': 'הרשמה',
       'welcomeScreen.title': 'ברוכים הבאים!',
       'welcomeScreen.buyer': 'התחל לקנות מוצרים',
-      'welcomeScreen.seller': 'התחל למכור מוצרים'
+      'welcomeScreen.seller': 'התחל למכור מוצרים',
+      'forgot_password': 'שכחת סיסמה?',
+      'reset_password': 'איפוס סיסמה',
+      'reset_password_sent': 'אימייל לאיפוס סיסמה נשלח לאימייל שלך!',
+      'reset_password_error': 'שגיאה בשליחת אימייל לאיפוס סיסמה',
+      'reset_password_description': 'הכנס את האימייל שלך ונשלח לך קישור לאיפוס הסיסמה',
+      'send_reset_link': 'שלח קישור לאיפוס',
+      'sending': 'שולח...',
+      'back_to_login': 'חזור להתחברות',
+      'remember_me': 'זכור אותי',
+      'login_short': 'התחבר',
+      'register_short': 'הרשמה',
+      'forgot_password_short': 'שכחת סיסמה?'
     }
   }
 };
