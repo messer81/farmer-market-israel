@@ -8,7 +8,6 @@ import ProductCatalog from './components/pages/ProductCatalog';
 import CartDrawer from './components/common/CartDrawer';
 import AdminPage from './components/pages/AdminPage';
 import WelcomePage from './components/pages/WelcomePage';
-import AuthPage from './components/pages/AuthPage';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import SellerStubPage from './components/pages/SellerStubPage';
 import OrderHistory from './components/pages/OrderHistory';
@@ -59,8 +58,7 @@ const AppContent: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<WelcomeScreen onBuyerClick={() => navigate('/welcome')} onSellerClick={() => navigate('/seller')} />} />
-      <Route path="/welcome" element={<WelcomePage onLoginClick={() => navigate('/auth')} onRegisterClick={() => navigate('/auth?tab=register')} onBack={() => navigate('/')} />} />
-      <Route path="/auth" element={<AuthPage onBackClick={() => navigate('/welcome')} onAuthSuccess={() => navigate('/catalog')} />} />
+      <Route path="/welcome" element={<WelcomePage onLoginClick={() => navigate('/catalog')} onRegisterClick={() => navigate('/catalog')} onBack={() => navigate('/')} />} />
       <Route path="/catalog" element={
         <div
           className="App"

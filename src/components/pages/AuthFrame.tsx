@@ -37,6 +37,11 @@ interface AuthFrameProps {
 
 const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initialTab = 0 }) => {
   const [tab, setTab] = useState(initialTab);
+
+  // Синхронизируем tab с initialTab при изменении
+  React.useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [regName, setRegName] = useState('');

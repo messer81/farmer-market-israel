@@ -18,7 +18,6 @@ import { setLanguage, type Language as LanguageType } from '../../store/slices/l
 import i18n from '../../i18n';
 import { loginAsGuest } from '../../store/slices/userSlice';
 import { useNavigate } from 'react-router-dom';
-import AuthFrame from './AuthFrame';
 
 interface WelcomePageProps {
   onLoginClick: () => void;
@@ -31,8 +30,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
   const dispatch = useAppDispatch();
   const currentLanguage = useAppSelector(state => state.language.currentLanguage);
   const [langAnchor, setLangAnchor] = React.useState<null | HTMLElement>(null);
-  const [authOpen, setAuthOpen] = React.useState(false);
-  const [authTab, setAuthTab] = React.useState(0);
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -63,21 +60,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
       i18n.changeLanguage(language);
     }
     setLangAnchor(null);
-  };
-
-  const handleLoginClick = () => {
-    setAuthTab(0);
-    setAuthOpen(true);
-  };
-
-  const handleRegisterClick = () => {
-    setAuthTab(1);
-    setAuthOpen(true);
-  };
-
-  const handleAuthSuccess = () => {
-    setAuthOpen(false);
-    onLoginClick();
   };
 
   return (
@@ -254,7 +236,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
                 variant="contained"
-                onClick={handleLoginClick}
+                onClick={onLoginClick}
                 sx={{ 
                   backgroundColor: '#4CAF50',
                   '&:hover': { backgroundColor: '#2E7D32' },
@@ -267,7 +249,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
               </Button>
               <Button
                 variant="outlined"
-                onClick={handleRegisterClick}
+                onClick={onRegisterClick}
                 sx={{ 
                   borderColor: '#4CAF50',
                   color: '#4CAF50',
@@ -306,14 +288,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
           </Paper>
         </Fade>
       </Container>
-
-      {/* Диалог авторизации */}
-      <AuthFrame 
-        open={authOpen} 
-        onClose={() => setAuthOpen(false)}
-        onSuccess={handleAuthSuccess}
-        initialTab={authTab}
-      />
     </div>
   );
 };

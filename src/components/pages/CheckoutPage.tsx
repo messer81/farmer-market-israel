@@ -28,7 +28,7 @@ import { db } from '../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import CardPayment from '../payment/CardPayment';
 import PayPalPayment from '../payment/PayPalPayment';
-import AuthPage from './AuthPage';
+import WelcomePage from './WelcomePage';
 
 const steps = ['cart', 'delivery', 'payment', 'confirmation'];
 
@@ -388,12 +388,13 @@ const CheckoutPage: React.FC = () => {
     );
   }
 
-  // Если пользователь гость — показываем AuthPage
+  // Если пользователь гость — показываем WelcomePage
   if (!user || user.isGuest) {
     return (
-      <AuthPage
-        onBackClick={() => window.history.back()}
-        onAuthSuccess={() => setShowAuth(false)}
+      <WelcomePage
+        onLoginClick={() => setShowAuth(false)}
+        onRegisterClick={() => setShowAuth(false)}
+        onBack={() => window.history.back()}
       />
     );
   }
