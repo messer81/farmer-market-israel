@@ -15,6 +15,8 @@
 - **История заказов** - Каждый пользователь видит только свои заказы (фильтрация по userId), отдельный маршрут /orders, пункт меню в Header.
 - **Мультиязычная корзина** - При добавлении товара в корзину сохраняются name/description на языке пользователя.
 - **Модальные окна авторизации** - AuthFrame открывается как модалка, при переходе с WelcomePage на регистрацию сразу открывается нужная вкладка.
+- **Сброс пароля** - Восстановление доступа через email с использованием Firebase Auth.
+- **Запомнить меня** - Сохранение сессии в localStorage для удобства пользователей.
 - **Роутинг** - Используется react-router-dom, основные маршруты: /, /welcome, /auth, /catalog, /orders, /admin, /seller.
 
 ## 📁 Структура проекта
@@ -33,24 +35,26 @@ farmer-market-israel/
 │   ├── 📁 components/           # React компоненты
 │   │   ├── 📁 common/           # Общие компоненты
 │   │   │   ├── CartDrawer.tsx   # Корзина покупок
-│   │   │   └── GoogleLogo.tsx   # Логотип Google
+│   │   │   ├── GoogleLogo.tsx   # Логотип Google
+│   │   │   └── GoogleLogoDetailed.tsx # Детальный логотип Google
 │   │   ├── 📁 layout/           # Макет
-│   │   │   └── Header.tsx       # Верхняя панель
+│   │   │   └── Header.tsx       # Верхняя панель с меню пользователя
 │   │   └── 📁 pages/            # Страницы
-│   │       ├── WelcomePage.tsx  # Стартовая
+│   │       ├── WelcomePage.tsx  # Стартовая страница
 │   │       ├── AuthPage.tsx     # Авторизация (роут /auth, поддержка ?tab=register)
-│   │       ├── AuthFrame.tsx    # Модальное окно входа/регистрации
-│   │       ├── ProductCatalog.tsx # Каталог
+│   │       ├── AuthFrame.tsx    # Модальное окно входа/регистрации/сброса пароля
+│   │       ├── ProductCatalog.tsx # Каталог товаров
 │   │       ├── CheckoutPage.tsx # Оформление заказа
 │   │       ├── OrderHistory.tsx # История заказов (роут /orders)
-│   │       └── AdminPage.tsx    # Админка
+│   │       ├── AdminPage.tsx    # Админка
+│   │       └── SellerStubPage.tsx # Заглушка для продавцов
 │   ├── 📁 hooks/                # Кастомные хуки
 │   │   └── redux.ts             # Redux хуки
 │   ├── 📁 store/                # Redux состояние
 │   │   ├── index.ts             # Настройка store
 │   │   └── 📁 slices/           # Redux слайсы
 │   │       ├── cartSlice.ts     # Корзина
-│   │       ├── userSlice.ts     # Пользователь
+│   │       ├── userSlice.ts     # Пользователь (включает гостевой режим)
 │   │       ├── productsSlice.ts # Товары
 │   │       └── languageSlice.ts # Язык
 │   ├── 📁 types/                # TypeScript типы
@@ -58,11 +62,15 @@ farmer-market-israel/
 │   │   └── images.d.ts          # Типы изображений
 │   ├── 📁 utils/                # Утилиты
 │   │   └── mockApi.ts           # Mock API
-│   ├── App.tsx                  # Главный компонент
+│   ├── App.tsx                  # Главный компонент с роутингом
 │   ├── App.css                  # Стили приложения
 │   ├── firebase.ts              # Firebase конфигурация
 │   ├── i18n.ts                  # Интернационализация
 │   └── main.tsx                 # Точка входа
+├── 📁 scripts/                  # Скрипты для работы с данными
+│   ├── import-admin.js          # Импорт данных в Firestore
+│   ├── export-admin.js          # Экспорт данных из Firestore
+│   └── generateTestData.ts      # Генерация тестовых данных
 ├── package.json                 # Зависимости
 ├── tsconfig.json               # TypeScript конфигурация
 ├── vite.config.ts              # Vite конфигурация
@@ -81,17 +89,22 @@ main.tsx → App.tsx → Redux Store → Firebase Auth
 WelcomePage → AuthPage/AuthFrame (модалка) → Firebase Auth → Redux Store → Каталог товаров
 ```
 
-### 3. Работа с товарами
+### 3. Сброс пароля
 ```
-ProductCatalog → Redux Store → Firebase Firestore
+AuthFrame (таб "Забыли пароль?") → Firebase sendPasswordResetEmail → Email пользователя
 ```
 
-### 4. Оформление заказа
+### 4. Работа с товарами
+```
+ProductCatalog → Redux Store → Firebase Firestore (динамические названия на языке пользователя)
+```
+
+### 5. Оформление заказа
 ```
 CartDrawer → CheckoutPage → Firebase Firestore (userId, name, description на языке пользователя) → Подтверждение
 ```
 
-### 5. История заказов
+### 6. История заказов
 ```
 OrderHistory → Firestore (фильтрация по userId) → Таблица заказов пользователя
 ```
@@ -160,7 +173,7 @@ const CommonComponent: React.FC<CommonComponentProps> = ({
 ```typescript
 interface RootState {
   cart: CartState;
-  user: UserState;
+  user: UserState; // Включает гостевой режим
   products: ProductsState;
   language: LanguageState;
 }
@@ -176,7 +189,7 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addItem: (state, action) => {
-      // Логика добавления
+      // Логика добавления с сохранением языка
     },
     removeItem: (state, action) => {
       // Логика удаления
@@ -197,6 +210,9 @@ const resources = {
     translation: {
       'welcome.title': 'Farm Market Israel',
       'welcome.subtitle': 'Добро пожаловать',
+      'forgot_password': 'Забыли пароль?',
+      'reset_password': 'Сбросить пароль',
+      'remember_me': 'Запомнить меня',
       // ...
     }
   },
@@ -204,6 +220,9 @@ const resources = {
     translation: {
       'welcome.title': 'Farm Market Israel',
       'welcome.subtitle': 'Welcome',
+      'forgot_password': 'Forgot Password?',
+      'reset_password': 'Reset Password',
+      'remember_me': 'Remember Me',
       // ...
     }
   },
@@ -211,6 +230,9 @@ const resources = {
     translation: {
       'welcome.title': 'שוק החקלאי ישראל',
       'welcome.subtitle': 'ברוכים הבאים',
+      'forgot_password': 'שכחת סיסמה?',
+      'reset_password': 'איפוס סיסמה',
+      'remember_me': 'זכור אותי',
       // ...
     }
   }
@@ -252,6 +274,7 @@ firestore/
 │   └── {userId}/
 │       ├── name: string
 │       ├── email: string
+│       ├── photoURL: string
 │       └── createdAt: timestamp
 ├── products/        # Товары
 │   └── {productId}/
@@ -263,61 +286,56 @@ firestore/
 │       ├── descriptionHe: string
 │       ├── price: number
 │       ├── category: string
-│       └── image: string
+│       ├── unit: string
+│       ├── farmName: string
+│       ├── location: string
+│       ├── organic: boolean
+│       ├── inStock: boolean
+│       ├── image: string
+│       ├── rating: number
+│       ├── reviews: number
+│       ├── createdAt: timestamp
+│       └── updatedAt: timestamp
 ├── orders/          # Заказы
 │   └── {orderId}/
 │       ├── userId: string
-│       ├── items: array
+│       ├── items: array (с сохранением названий на языке пользователя)
 │       ├── total: number
 │       ├── status: string
 │       ├── deliveryAddress: object
 │       ├── paymentMethod: string
 │       ├── createdAt: timestamp
-│       └── ...
+│       └── updatedAt: timestamp
 ```
 
-## 🎨 Стилизация
+## 🔐 Система авторизации
 
-### Material-UI тема
+### Способы входа
+1. **Email/Пароль** - Классическая регистрация с валидацией
+2. **Google OAuth** - Быстрый вход через Google
+3. **Гостевой режим** - Просмотр без регистрации
+
+### Функции безопасности
 ```typescript
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#4CAF50', // Зеленый
-    },
-    secondary: {
-      main: '#FF9800', // Оранжевый
-    },
-  },
-  typography: {
-    fontFamily: [
-      'Roboto',
-      'Arial',
-      'sans-serif',
-      'Arial Hebrew',
-      'David',
-    ].join(','),
-  },
-});
+// Сброс пароля
+const handlePasswordReset = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    // Показать сообщение об успехе
+  } catch (error) {
+    // Обработка ошибки
+  }
+};
+
+// Запомнить меня
+const handleRememberMe = (token: string, remember: boolean) => {
+  if (remember) {
+    localStorage.setItem('jwt', token);
+  } else {
+    sessionStorage.setItem('jwt', token);
+  }
+};
 ```
-
-### CSS модули
-```css
-/* App.css */
-.App {
-  background-image: url('./assets/images/Farm Sharing background.jpg');
-  background-size: cover;
-  background-position: center;
-  min-height: 100vh;
-}
-
-.content-wrapper {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(5px);
-}
-```
-
-## 🔐 Безопасность
 
 ### Firebase Security Rules
 ```javascript
@@ -343,17 +361,60 @@ service cloud.firestore {
 }
 ```
 
-### Валидация форм
-```typescript
-// Пример валидации
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
+## 🎨 Стилизация
 
-const validatePassword = (password: string): boolean => {
-  return password.length >= 6;
-};
+### Material-UI тема
+```typescript
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#4CAF50', // Зеленый
+    },
+    secondary: {
+      main: '#FF9800', // Оранжевый
+    },
+  },
+  typography: {
+    fontFamily: [
+      'Roboto',
+      'Arial',
+      'sans-serif',
+      'Arial Hebrew',
+      'David',
+    ].join(','),
+  },
+  components: {
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          // Стили для табов авторизации
+        }
+      }
+    }
+  }
+});
+```
+
+### CSS модули
+```css
+/* App.css */
+.App {
+  background-image: url('./assets/images/Farm Sharing background.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+}
+
+/* Модальные окна */
+.auth-modal {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
 ```
 
 ## 📱 Адаптивность
@@ -385,6 +446,7 @@ xl: 1536px // Большие десктопы
 - **Lazy Loading** - Ленивая загрузка компонентов
 - **Memoization** - Кэширование вычислений
 - **Bundle Optimization** - Оптимизация сборки
+- **Image Optimization** - Оптимизация изображений товаров
 
 ### Мониторинг
 - **Firebase Analytics** - Отслеживание событий
@@ -429,7 +491,8 @@ src/
 ├── __tests__/
 │   ├── components/
 │   │   ├── WelcomePage.test.tsx
-│   │   └── AuthPage.test.tsx
+│   │   ├── AuthPage.test.tsx
+│   │   └── AuthFrame.test.tsx
 │   ├── store/
 │   │   └── slices/
 │   └── utils/
