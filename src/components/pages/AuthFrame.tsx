@@ -31,10 +31,11 @@ interface AuthFrameProps {
   open?: boolean;
   onClose?: () => void;
   onSuccess?: () => void;
+  initialTab?: number;
 }
 
-const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess }) => {
-  const [tab, setTab] = useState(0);
+const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initialTab = 0 }) => {
+  const [tab, setTab] = useState(initialTab);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [regName, setRegName] = useState('');

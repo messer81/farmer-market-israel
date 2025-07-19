@@ -22,6 +22,7 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { useAppDispatch } from '../../hooks/redux';
 import { setUser, setToken } from '../../store/slices/userSlice';
+import { useLocation } from 'react-router-dom';
 
 interface AuthPageProps {
   onBackClick: () => void;
@@ -31,8 +32,12 @@ interface AuthPageProps {
 const AuthPage: React.FC<AuthPageProps> = ({ onBackClick, onAuthSuccess }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState(0);
-  const [authOpen, setAuthOpen] = useState(false);
+  const location = useLocation();
+  // Читаем query-параметр tab
+  const params = new URLSearchParams(location.search);
+  const initialTab = params.get('tab') === 'register' ? 1 : 0;
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [authOpen, setAuthOpen] = useState(params.get('tab') === 'register');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -294,6 +299,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onBackClick, onAuthSuccess }) => {
         open={authOpen} 
         onClose={() => setAuthOpen(false)}
         onSuccess={handleAuthSuccess}
+        initialTab={activeTab}
       />
     </div>
   );

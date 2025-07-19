@@ -59,7 +59,7 @@ const AppContent: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<WelcomeScreen onBuyerClick={() => navigate('/welcome')} onSellerClick={() => navigate('/seller')} />} />
-      <Route path="/welcome" element={<WelcomePage onLoginClick={() => navigate('/auth')} onRegisterClick={() => navigate('/auth')} onBack={() => navigate('/')} />} />
+      <Route path="/welcome" element={<WelcomePage onLoginClick={() => navigate('/auth')} onRegisterClick={() => navigate('/auth?tab=register')} onBack={() => navigate('/')} />} />
       <Route path="/auth" element={<AuthPage onBackClick={() => navigate('/welcome')} onAuthSuccess={() => navigate('/catalog')} />} />
       <Route path="/catalog" element={
         <div
