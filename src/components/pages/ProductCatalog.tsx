@@ -70,10 +70,28 @@ const ProductCatalog: React.FC = () => {
               </InputAdornment>
             ),
           }}
-          sx={{ minWidth: 300 }}
+          sx={{
+            minWidth: 300,
+            background: 'rgba(255,255,255,0.85)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+            borderRadius: 2,
+            '& .MuiInputBase-root': {
+              borderRadius: 2,
+              background: 'transparent',
+            },
+          }}
         />
         
-        <FormControl sx={{ minWidth: 200 }}>
+        <FormControl sx={{
+          minWidth: 200,
+          background: 'rgba(255,255,255,0.85)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+          borderRadius: 2,
+          '& .MuiInputBase-root': {
+            borderRadius: 2,
+            background: 'transparent',
+          },
+        }}>
           <InputLabel>{t('category')}</InputLabel>
           <Select
             value={selectedCategory || ''}

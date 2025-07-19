@@ -9,6 +9,8 @@ import CartDrawer from './components/common/CartDrawer';
 import AdminPage from './components/pages/AdminPage';
 import WelcomePage from './components/pages/WelcomePage';
 import AuthPage from './components/pages/AuthPage';
+import WelcomeScreen from './components/pages/WelcomeScreen';
+import SellerStubPage from './components/pages/SellerStubPage';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import backgroundImage from './assets/images/Farm Sharing background.jpg';
@@ -37,7 +39,7 @@ const theme = createTheme({
 const AppContent: React.FC = () => {
   const user = useAppSelector(state => state.user.user);
   const dispatch = useAppDispatch();
-  const [currentPage, setCurrentPage] = useState<'welcome' | 'auth' | 'catalog'>('welcome');
+  const [currentPage, setCurrentPage] = useState<'welcomeScreen' | 'welcome' | 'auth' | 'catalog' | 'sellerStub'>('welcomeScreen');
 
   React.useEffect(() => {
     const token = localStorage.getItem('jwt');
@@ -47,7 +49,6 @@ const AppContent: React.FC = () => {
   }, [dispatch]);
 
   React.useEffect(() => {
-    // Если пользователь авторизован, показываем каталог
     if (user) {
       setCurrentPage('catalog');
     }
@@ -73,6 +74,11 @@ const AppContent: React.FC = () => {
     setCurrentPage('welcome');
   };
 
+  // Новый обработчик возврата на WelcomeScreen
+  const handleBackToWelcomeScreen = () => {
+    setCurrentPage('welcomeScreen');
+  };
+
   // Простой роутинг для админки
   const isAdminPage = window.location.pathname === '/admin';
 
@@ -80,19 +86,36 @@ const AppContent: React.FC = () => {
     return <AdminPage />;
   }
 
+  // Новый экран WelcomeScreen
+  if (currentPage === 'welcomeScreen') {
+    return (
+      <WelcomeScreen
+        onBuyerClick={() => setCurrentPage('welcome')}
+        onSellerClick={() => setCurrentPage('sellerStub')}
+        // onBack не передаём, чтобы не было кнопки назад на самом первом экране
+      />
+    );
+  }
+
+  // Заглушка для продавца
+  if (currentPage === 'sellerStub') {
+    return <SellerStubPage onBack={() => setCurrentPage('welcomeScreen')} />;
+  }
+
   // Рендерим страницы в зависимости от состояния
   if (currentPage === 'welcome') {
     return (
-      <WelcomePage 
+      <WelcomePage
         onLoginClick={handleLoginClick}
         onRegisterClick={handleRegisterClick}
+        onBack={() => setCurrentPage('welcomeScreen')}
       />
     );
   }
 
   if (currentPage === 'auth') {
     return (
-      <AuthPage 
+      <AuthPage
         onBackClick={handleBackToWelcome}
         onAuthSuccess={handleAuthSuccess}
       />
@@ -101,7 +124,7 @@ const AppContent: React.FC = () => {
 
   // Каталог (после авторизации)
   return (
-    <div 
+    <div
       className="App"
       style={{
         backgroundImage: `url(${backgroundImage})`,

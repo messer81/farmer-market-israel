@@ -64,7 +64,10 @@ const resources = {
       'welcome.features.shopping': 'Easy Shopping',
       'welcome.features.delivery': 'Fast Delivery',
       'welcome.login': 'Войти / Login',
-      'welcome.register': 'Регистрация / Register'
+      'welcome.register': 'Регистрация / Register',
+      'welcomeScreen.title': 'Добро пожаловать!',
+      'welcomeScreen.buyer': 'Начать покупки',
+      'welcomeScreen.seller': 'Начать продажи'
     }
   },
   en: {
@@ -129,7 +132,10 @@ const resources = {
       'welcome.features.shopping': 'Easy Shopping',
       'welcome.features.delivery': 'Fast Delivery',
       'welcome.login': 'Login',
-      'welcome.register': 'Register'
+      'welcome.register': 'Register',
+      'welcomeScreen.title': 'Welcome!',
+      'welcomeScreen.buyer': 'Start buying products',
+      'welcomeScreen.seller': 'Start selling products'
     }
   },
   he: {
@@ -194,7 +200,10 @@ const resources = {
       'welcome.features.shopping': 'קניות קלות',
       'welcome.features.delivery': 'משלוח מהיר',
       'welcome.login': 'התחבר',
-      'welcome.register': 'הרשמה'
+      'welcome.register': 'הרשמה',
+      'welcomeScreen.title': 'ברוכים הבאים!',
+      'welcomeScreen.buyer': 'התחל לקנות מוצרים',
+      'welcomeScreen.seller': 'התחל למכור מוצרים'
     }
   }
 };

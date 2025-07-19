@@ -10,7 +10,7 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import { Agriculture, ShoppingCart, LocalShipping, Language } from '@mui/icons-material';
+import { Agriculture, ShoppingCart, LocalShipping, Language, ArrowBack } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import backgroundImage from '../../assets/images/Farm Sharing background.jpg';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
@@ -20,9 +20,10 @@ import i18n from '../../i18n';
 interface WelcomePageProps {
   onLoginClick: () => void;
   onRegisterClick: () => void;
+  onBack?: () => void;
 }
 
-const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick }) => {
+const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick, onBack }) => {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const currentLanguage = useAppSelector(state => state.language.currentLanguage);
@@ -35,7 +36,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
     }
   }, [dispatch]);
 
-  // Синхронизация языка с i18n
   React.useEffect(() => {
     if (currentLanguage && i18n.language !== currentLanguage && i18n.isInitialized) {
       i18n.changeLanguage(currentLanguage);
@@ -72,6 +72,14 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
         flexDirection: 'column'
       }}
     >
+      {/* Кнопка "Назад" */}
+      {onBack && (
+        <Box sx={{ position: 'absolute', top: 20, left: 20, zIndex: 3 }}>
+          <IconButton onClick={onBack} sx={{ color: 'white', backgroundColor: 'rgba(0,0,0,0.2)', '&:hover': { backgroundColor: 'rgba(0,0,0,0.3)' } }}>
+            <ArrowBack />
+          </IconButton>
+        </Box>
+      )}
       {/* Оверлей для лучшей читаемости */}
       <div
         style={{
@@ -84,7 +92,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
           zIndex: 0
         }}
       />
-
       {/* Кнопка выбора языка */}
       <Box sx={{ 
         position: 'absolute', 
@@ -137,7 +144,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
           </MenuItem>
         </Menu>
       </Box>
-
       {/* Контент */}
       <Container 
         maxWidth="md" 
@@ -172,7 +178,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
                 mb: 2 
               }} 
             />
-
             {/* Заголовок */}
             <Typography 
               variant="h2" 
@@ -186,7 +191,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
             >
               🌾 {t('welcome.title')}
             </Typography>
-
             {/* Подзаголовок */}
             <Typography 
               variant="h5" 
@@ -196,7 +200,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
             >
               {t('welcome.subtitle')}
             </Typography>
-
             {/* Описание */}
             <Typography 
               variant="body1" 
@@ -205,7 +208,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
             >
               {t('welcome.description')}
             </Typography>
-
             {/* Преимущества */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, mb: 4, flexWrap: 'wrap' }}>
               <Box sx={{ textAlign: 'center', minWidth: 120 }}>
@@ -227,12 +229,10 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
                 </Typography>
               </Box>
             </Box>
-
             {/* Кнопки действий */}
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Button
                 variant="contained"
-                size="large"
                 onClick={onLoginClick}
                 sx={{ 
                   backgroundColor: '#4CAF50',
@@ -245,7 +245,6 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
               </Button>
               <Button
                 variant="outlined"
-                size="large"
                 onClick={onRegisterClick}
                 sx={{ 
                   borderColor: '#4CAF50',
