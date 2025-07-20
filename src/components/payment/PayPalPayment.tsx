@@ -13,9 +13,9 @@ const PayPalPayment: React.FC<PayPalPaymentProps> = ({ amount, onSuccess, onErro
   const { t } = useTranslation();
 
   const paypalOptions = {
-    'client-id': 'test', // Тестовый клиент ID
+    clientId: 'test', // Тестовый клиент ID
     currency: 'ILS',
-    intent: 'capture'
+    intent: 'capture',
   };
 
   return (
@@ -34,21 +34,24 @@ const PayPalPayment: React.FC<PayPalPaymentProps> = ({ amount, onSuccess, onErro
       <PayPalScriptProvider options={paypalOptions}>
         <PayPalButtons
           createOrder={(data, actions) => {
+            if (!actions.order) return Promise.reject('Order actions not available');
             return actions.order.create({
+              intent: 'CAPTURE',
               purchase_units: [
                 {
                   amount: {
                     value: amount.toString(),
-                    currency_code: 'ILS'
+                    currency_code: 'ILS',
                   },
-                  description: 'Farmer Market Israel - Order'
+                  description: 'Farmer Market Israel - Order',
                 }
               ]
             });
           }}
           onApprove={(data, actions) => {
-            return actions.order.capture().then((details) => {
-              onSuccess(details.id);
+            if (!actions.order) return Promise.reject('Order actions not available');
+            return actions.order.capture().then((details: any) => {
+              onSuccess(details.id || '');
             });
           }}
           onError={(err) => {
