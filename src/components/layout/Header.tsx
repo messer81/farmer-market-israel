@@ -15,6 +15,7 @@ import {
   Agriculture,
   Language,
   AdminPanelSettings,
+  Home,
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { toggleCart } from '../../store/slices/cartSlice';
@@ -28,7 +29,7 @@ import AnimatedCartIcon from '../common/AnimatedCartIcon';
 interface HeaderProps {
   onProfileClick?: () => void;
   showOnWelcome?: boolean;
-  cartRef?: React.RefObject<HTMLButtonElement | null>;
+  cartRef?: React.RefObject<HTMLButtonElement>;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -61,6 +62,10 @@ const Header: React.FC<HeaderProps> = ({
 
   const handleCartClick = () => {
     dispatch(toggleCart());
+  };
+
+  const handleHomeClick = () => {
+    navigate('/');
   };
 
   const handleLanguageClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -106,6 +111,16 @@ const Header: React.FC<HeaderProps> = ({
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           שוק החקלאי 🇮🇱 Farmer Market
         </Typography>
+
+        {/* 🏠 Кнопка Home */}
+        <IconButton 
+          color="inherit" 
+          onClick={handleHomeClick}
+          title="Главная страница"
+          sx={{ mr: 1 }}
+        >
+          <Home />
+        </IconButton>
 
         {/* 🌐 Языки */}
         <IconButton color="inherit" onClick={handleLanguageClick}>
