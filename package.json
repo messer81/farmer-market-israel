@@ -8,6 +8,7 @@
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
     "@paypal/react-paypal-js": "^8.8.3",
+    "@react-spring/web": "^10.0.1",
     "@reduxjs/toolkit": "^2.8.2",
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.5.0",

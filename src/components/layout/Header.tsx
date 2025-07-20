@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -11,8 +11,6 @@ import {
   MenuItem,
 } from '@mui/material';
 import {
-  ShoppingCart,
- 
   AccountCircle,
   Agriculture,
   Language,
@@ -25,8 +23,19 @@ import { setLanguage, type Language as LanguageType } from '../../store/slices/l
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { useNavigate } from 'react-router-dom';
+import AnimatedCartIcon from '../common/AnimatedCartIcon';
 
-const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }> = ({ onProfileClick, showOnWelcome = true }) => {
+interface HeaderProps {
+  onProfileClick?: () => void;
+  showOnWelcome?: boolean;
+  cartRef?: React.RefObject<HTMLButtonElement | null>;
+}
+
+const Header: React.FC<HeaderProps> = ({ 
+  onProfileClick, 
+  showOnWelcome = true,
+  cartRef 
+}) => {
   const dispatch = useAppDispatch();
   const cartItems = useAppSelector(state => state.cart.items);
   const user = useAppSelector(state => state.user.user);
@@ -90,7 +99,7 @@ const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }>
   };
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: '#4CAF50' }}>
+    <AppBar position="fixed" sx={{ backgroundColor: '#4CAF50', zIndex: 1000 }}>
       <Toolbar>
         {/* 🌾 Лого */}
         <Agriculture sx={{ mr: 2 }} />
@@ -127,12 +136,12 @@ const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }>
           </MenuItem>
         </Menu>
 
-        {/* 🛒 Корзина */}
-        <IconButton color="inherit" onClick={handleCartClick}>
-          <Badge badgeContent={cartItems.length} color="error">
-            <ShoppingCart />
-          </Badge>
-        </IconButton>
+        {/* 🛒 Анимированная корзина */}
+        <AnimatedCartIcon
+          itemCount={cartItems.length}
+          onClick={handleCartClick}
+          ref={cartRef}
+        />
 
         {/* 🛠️ Админка */}
         <IconButton 
@@ -152,15 +161,17 @@ const Header: React.FC<{ onProfileClick?: () => void; showOnWelcome?: boolean }>
           open={Boolean(profileAnchor)}
           onClose={handleProfileClose}
         >
-          {user && (
-            <>
-              <MenuItem disabled>
-                {user.name ? user.name : user.email}
-              </MenuItem>
-              <MenuItem onClick={() => { handleProfileClose(); navigate('/orders'); }}>История заказов</MenuItem>
-              <MenuItem onClick={handleLogout}>{t('logout')}</MenuItem>
-            </>
-          )}
+          {user ? [
+            <MenuItem key="name" disabled>
+              {user.name ? user.name : user.email}
+            </MenuItem>,
+            <MenuItem key="orders" onClick={() => { handleProfileClose(); navigate('/orders'); }}>
+              История заказов
+            </MenuItem>,
+            <MenuItem key="logout" onClick={handleLogout}>
+              {t('logout')}
+            </MenuItem>
+          ] : null}
         </Menu>
       </Toolbar>
     </AppBar>
