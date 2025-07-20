@@ -176,17 +176,13 @@ const Header: React.FC<HeaderProps> = ({
           open={Boolean(profileAnchor)}
           onClose={handleProfileClose}
         >
-          {user ? [
-            <MenuItem key="name" disabled>
+          {user && [
+            <MenuItem key="profile-name" disabled>
               {user.name ? user.name : user.email}
             </MenuItem>,
-            <MenuItem key="orders" onClick={() => { handleProfileClose(); navigate('/orders'); }}>
-              История заказов
-            </MenuItem>,
-            <MenuItem key="logout" onClick={handleLogout}>
-              {t('logout')}
-            </MenuItem>
-          ] : null}
+            <MenuItem key="orders" onClick={() => { handleProfileClose(); navigate('/orders'); }}>История заказов</MenuItem>,
+            <MenuItem key="logout" onClick={handleLogout}>{t('logout')}</MenuItem>
+          ]}
         </Menu>
       </Toolbar>
     </AppBar>

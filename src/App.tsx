@@ -4,6 +4,13 @@ import { Provider } from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { store } from './store';
+import { useAppSelector, useAppDispatch } from './hooks/redux';
+import { setToken } from './store/slices/userSlice';
+import Header from './components/layout/Header';
+import ProductCatalog from './components/pages/ProductCatalog';
+import CartDrawer from './components/common/CartDrawer';
+import AdminPage from './components/pages/AdminPage';
+import WelcomePage from './components/pages/WelcomePage';
 import WelcomeScreen from './components/pages/WelcomeScreen';
 import WelcomePage from './components/pages/WelcomePage';
 import CatalogPage from './components/pages/CatalogPage';
@@ -43,10 +50,26 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      dispatch(setToken(token));
-    }
+    // Подписка на изменения авторизации Firebase
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Пользователь залогинен
+        dispatch(setUser({
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || '',
+          email: firebaseUser.email || '',
+          phone: firebaseUser.phoneNumber || '',
+          address: '',
+          preferredLanguage: 'ru',
+        }));
+        const token = await firebaseUser.getIdToken();
+        dispatch(setToken(token));
+      } else {
+        // Пользователь разлогинен
+        dispatch(clearUser());
+      }
+    });
+    return () => unsubscribe();
   }, [dispatch]);
 
   // Простой роутинг для админки
