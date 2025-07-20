@@ -5,22 +5,19 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { store } from './store';
 import { useAppSelector, useAppDispatch } from './hooks/redux';
-import { setToken } from './store/slices/userSlice';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
+import { setUser, clearUser, setToken } from './store/slices/userSlice';
 import Header from './components/layout/Header';
 import ProductCatalog from './components/pages/ProductCatalog';
 import CartDrawer from './components/common/CartDrawer';
 import AdminPage from './components/pages/AdminPage';
 import WelcomePage from './components/pages/WelcomePage';
 import WelcomeScreen from './components/pages/WelcomeScreen';
-import WelcomePage from './components/pages/WelcomePage';
 import CatalogPage from './components/pages/CatalogPage';
 import CheckoutPage from './components/pages/CheckoutPage';
-import AdminPage from './components/pages/AdminPage';
 import SellerStubPage from './components/pages/SellerStubPage';
 import OrderHistory from './components/pages/OrderHistory';
-import CartDrawer from './components/common/CartDrawer';
-import { useAppSelector, useAppDispatch } from './hooks/redux';
-import { setToken } from './store/slices/userSlice';
 
 // Создаём тему с поддержкой иврита
 const theme = createTheme({
