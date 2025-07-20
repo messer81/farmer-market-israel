@@ -22,11 +22,15 @@ import {
   signOut,
   GoogleAuthProvider,
   signInWithPopup,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthFrameProps {
   open?: boolean;
@@ -42,7 +46,8 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
   React.useEffect(() => {
     setTab(initialTab);
   }, [initialTab]);
-  const [loginEmail, setLoginEmail] = useState('');
+  // Инициализация email из localStorage
+  const [loginEmail, setLoginEmail] = useState(() => localStorage.getItem('rememberedEmail') || '');
   const [loginPassword, setLoginPassword] = useState('');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
@@ -52,24 +57,27 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
   const dispatch = useAppDispatch();
   const user = useAppSelector(state => state.user.user);
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
-  React.useEffect(() => {
-    // Автоматический логин, если есть токен в localStorage
-    const token = localStorage.getItem('jwt');
-    if (token) {
-      dispatch(setToken(token));
-      // Здесь можно добавить логику получения пользователя по токену, если нужно
-    }
-  }, [dispatch]);
+  // Удаляем useEffect с localStorage (автоматический логин)
+  // React.useEffect(() => {
+  //   const token = localStorage.getItem('jwt');
+  //   if (token) {
+  //     dispatch(setToken(token));
+  //     // Здесь можно добавить логику получения пользователя по токену, если нужно
+  //   }
+  // }, [dispatch]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
+      await setPersistence(auth, browserLocalPersistence); // всегда localPersistence, чтобы браузер мог подставить пароль
       const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
       const user = userCredential.user;
       dispatch(setUser({
@@ -83,9 +91,9 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
       const token = await user.getIdToken();
       dispatch(setToken(token));
       if (rememberMe) {
-        localStorage.setItem('jwt', token);
+        localStorage.setItem('rememberedEmail', loginEmail);
       } else {
-        sessionStorage.setItem('jwt', token);
+        localStorage.removeItem('rememberedEmail');
       }
       onSuccess?.();
     } catch (err: any) {
@@ -100,6 +108,7 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
     setLoading(true);
     setError('');
     try {
+      await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, regEmail, regPassword);
       const user = userCredential.user;
       // Сохраняем профиль в Firestore
@@ -117,7 +126,11 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
       }));
       const token = await user.getIdToken();
       dispatch(setToken(token));
-      localStorage.setItem('jwt', token);
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', regEmail);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
       onSuccess?.();
     } catch (err: any) {
       setError(err.message || 'Ошибка регистрации');
@@ -130,6 +143,7 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
     setLoading(true);
     setError('');
     try {
+      await setPersistence(auth, browserLocalPersistence);
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
@@ -158,7 +172,11 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
       
       const token = await user.getIdToken();
       dispatch(setToken(token));
-      localStorage.setItem('jwt', token);
+      if (rememberMe && user.email) {
+        localStorage.setItem('rememberedEmail', user.email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
       onSuccess?.();
     } catch (err: any) {
       console.error('Google auth error:', err);
@@ -188,7 +206,7 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
   const handleLogout = async () => {
     await signOut(auth);
     dispatch(clearUser());
-    localStorage.removeItem('jwt');
+    // localStorage.removeItem('jwt'); // больше не нужно
   };
 
   const content = (
@@ -434,18 +452,33 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
     </Box>
   );
 
-  // Если передан open, показываем как диалог
+  // Greeting-контент для залогиненного пользователя
+  const greeting = (
+    <Box sx={{ width: 450, p: 3, textAlign: 'center' }}>
+      <Typography variant="h6">{t('hello')}, {user?.name || ''}!</Typography>
+      <Typography variant="body2" color="text.secondary">{user?.email}</Typography>
+      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', gap: 2 }}>
+        <Button variant="outlined" onClick={() => {
+          handleLogout();
+          setShowLoginForm(true);
+        }}>{t('change_user')}</Button>
+        <Button variant="contained" color="primary" onClick={() => { if (onClose) onClose(); navigate('/catalog'); }}>{t('to_shop') || 'В магазин'}</Button>
+      </Box>
+    </Box>
+  );
+
+  // Если используется как модалка
   if (open !== undefined) {
     return (
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
         <DialogContent>
-          {content}
+          {(user && !user.isGuest && !showLoginForm) ? greeting : content}
         </DialogContent>
       </Dialog>
     );
   }
 
-  // Иначе показываем как обычный компонент
+  // Если не модалка — просто рендерим content (старый вариант)
   return content;
 };
 
