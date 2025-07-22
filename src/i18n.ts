@@ -81,7 +81,17 @@ const resources = {
       'remember_me': 'Запомнить меня',
       'login_short': 'Войти',
       'register_short': 'Регистрация',
-      'forgot_password_short': 'Забыли пароль?'
+      'forgot_password_short': 'Забыли пароль?',
+      'description': 'Описание',
+      'quantity': 'Количество',
+      'contact_farmer': 'Связаться с фермером',
+      'per_unit': 'за {{unit}}',
+     
+      'farmer': 'Фермер',
+      'location': 'Регион',
+      'reviews': 'отзывов',
+      'organic': 'Органик',
+      'manufacturer': 'Производитель'
     }
   },
   en: {
@@ -163,7 +173,17 @@ const resources = {
       'remember_me': 'Remember Me',
       'login_short': 'Login',
       'register_short': 'Register',
-      'forgot_password_short': 'Forgot Password?'
+      'forgot_password_short': 'Forgot Password?',
+      'description': 'Description',
+      'quantity': 'Quantity',
+      'contact_farmer': 'Contact Farmer',
+      'per_unit': 'per {{unit}}',
+    
+      'farmer': 'Farmer',
+      'location': 'Location',
+      'reviews': 'reviews',
+      'organic': 'Organic',
+      'manufacturer': 'Manufacturer'
     }
   },
   he: {
@@ -245,7 +265,17 @@ const resources = {
       'remember_me': 'זכור אותי',
       'login_short': 'התחבר',
       'register_short': 'הרשמה',
-      'forgot_password_short': 'שכחת סיסמה?'
+      'forgot_password_short': 'שכחת סיסמה?',
+      'description': 'תיאור',
+      'quantity': 'כמות',
+      'contact_farmer': 'צור קשר עם החקלאי',
+      'per_unit': 'ל-{{unit}}',
+ 
+      'farmer': 'חקלאי',
+      'location': 'אזור',
+      'reviews': 'ביקורות',
+      'organic': 'אורגני',
+      'manufacturer': 'יצרן'
     }
   }
 };

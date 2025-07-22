@@ -29,7 +29,7 @@ import AnimatedCartIcon from '../common/AnimatedCartIcon';
 interface HeaderProps {
   onProfileClick?: () => void;
   showOnWelcome?: boolean;
-  cartRef?: React.RefObject<HTMLButtonElement>;
+  cartRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
@@ -104,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <AppBar position="fixed" sx={{ backgroundColor: '#4CAF50', zIndex: 1000 }}>
+    <AppBar position="fixed" sx={{ background: 'linear-gradient(120deg, #43cea2 0%, #185a9d 100%, #faff00 120%)' }}>
       <Toolbar>
         {/* 🌾 Лого */}
         <Agriculture sx={{ mr: 2 }} />

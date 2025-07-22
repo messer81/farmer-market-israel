@@ -19,6 +19,8 @@ export interface Product {
   organic: boolean;
   inStock: boolean;
   unit: 'kg' | 'piece' | 'bunch';
+  rating?: number;
+  reviews?: number;
 }
 
 // 🏷️ Категории продуктов

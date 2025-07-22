@@ -1,50 +1,52 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { CartItem, Product } from '../../types';
+import { Product } from '../../types';
 import i18n from '../../i18n';
 
+interface CartItem extends Product {
+  quantity: number;
+}
+
+// Добавляем новые поля для управления состоянием корзины и оформления заказа через Redux
 interface CartState {
   items: CartItem[];
   total: number;
   isOpen: boolean;
+  showCheckout: boolean; // Показывать ли оформление заказа
+  authOpen: boolean;     // Показывать ли окно авторизации
 }
 
 const initialState: CartState = {
   items: [],
   total: 0,
   isOpen: false,
+  showCheckout: false, // По умолчанию оформление заказа закрыто
+  authOpen: false,     // По умолчанию окно авторизации закрыто
 };
 
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
   reducers: {
-    addToCart: (state, action: PayloadAction<Product>) => {
-      const existingItem = state.items.find(item => item.product.id === action.payload.id);
-      // Определяем язык и формируем name/description
-      const lang = i18n.language || 'en';
-      const p = action.payload as any;
-      const name =
-        (typeof p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`] === 'string' && p[`name${lang.charAt(0).toUpperCase() + lang.slice(1)}`]) ||
-        p.nameEn || p.nameRu || p.nameHe || '';
-      const description =
-        (typeof p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`] === 'string' && p[`description${lang.charAt(0).toUpperCase() + lang.slice(1)}`]) ||
-        p.descriptionEn || p.descriptionRu || p.descriptionHe || '';
-      if (existingItem) {
-        existingItem.quantity += 1;
+    addToCart: (state, action: PayloadAction<{ product: Product; quantity: number }>) => {
+      const { product, quantity } = action.payload;
+      const existing = state.items.find(item => item.id === product.id);
+      if (existing) {
+        existing.quantity += quantity;
       } else {
-        state.items.push({ product: { ...action.payload, name, description }, quantity: 1 });
+        state.items.push({ ...product, quantity });
       }
-      state.total = state.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      // Если есть поле total, пересчитываем его так:
+      // state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(item => item.product.id !== action.payload);
-      state.total = state.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      state.items = state.items.filter(item => item.id !== action.payload);
+      state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     },
     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
-      const item = state.items.find(item => item.product.id === action.payload.id);
+      const item = state.items.find(item => item.id === action.payload.id);
       if (item) {
         item.quantity = action.payload.quantity;
-        state.total = state.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+        state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       }
     },
     clearCart: (state) => {
@@ -54,8 +56,17 @@ const cartSlice = createSlice({
     toggleCart: (state) => {
       state.isOpen = !state.isOpen;
     },
+    setShowCheckout: (state, action: PayloadAction<boolean>) => {
+      // Управляет показом оформления заказа (CheckoutPage)
+      state.showCheckout = action.payload;
+    },
+    setAuthOpen: (state, action: PayloadAction<boolean>) => {
+      // Управляет показом окна авторизации
+      state.authOpen = action.payload;
+    },
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart, toggleCart } = cartSlice.actions;
+// Экспортируем экшены для управления состоянием корзины и оформления заказа
+export const { addToCart, removeFromCart, updateQuantity, clearCart, toggleCart, setShowCheckout, setAuthOpen } = cartSlice.actions;
 export default cartSlice.reducer; 
