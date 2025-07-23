@@ -30,12 +30,12 @@ const CardPayment: React.FC<CardPaymentProps> = ({ amount, onSuccess, onError })
     // Простая валидация Luhn алгоритмом
     const cardNumber = cardData.number.replace(/\s/g, '');
     if (cardNumber.length < 13 || cardNumber.length > 19) {
-      return 'Неверный номер карты';
+      return t('invalid_card_number');
     }
     
     // Проверка CVC
     if (cardData.cvc.length < 3 || cardData.cvc.length > 4) {
-      return 'Неверный CVC';
+      return t('invalid_cvc');
     }
     
     // Проверка срока действия
@@ -46,7 +46,7 @@ const CardPayment: React.FC<CardPaymentProps> = ({ amount, onSuccess, onError })
     
     if (parseInt(year) < currentYear || 
         (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
-      return 'Карта истекла';
+      return t('expired_card');
     }
     
     return null;
@@ -72,7 +72,7 @@ const CardPayment: React.FC<CardPaymentProps> = ({ amount, onSuccess, onError })
       
       onSuccess(paymentId);
     } catch (error) {
-      onError('Ошибка обработки платежа');
+      onError(t('payment_processing_error'));
     } finally {
       setLoading(false);
     }

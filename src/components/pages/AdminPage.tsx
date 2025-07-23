@@ -2,8 +2,10 @@ import React from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import OrdersExport from '../admin/OrdersExport';
 import backgroundImage from '../../assets/images/Farm Sharing background.jpg';
+import { useTranslation } from 'react-i18next';
 
 const AdminPage: React.FC = () => {
+  const { t } = useTranslation();
   return (
     <div 
       className="App"
@@ -19,10 +21,10 @@ const AdminPage: React.FC = () => {
       <div className="content-wrapper">
         <Paper sx={{ m: 2, p: 3, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}>
           <Typography variant="h3" gutterBottom align="center">
-            🛠️ Панель администратора
+            🛠️ {t('admin_panel')}
           </Typography>
           <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4 }}>
-            Управление заказами и экспорт данных
+            {t('admin_description')}
           </Typography>
           
           <OrdersExport />

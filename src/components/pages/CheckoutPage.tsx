@@ -45,7 +45,7 @@ const CheckoutPage: React.FC = () => {
   
   // Форма доставки
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress>({
-    name: user?.name || 'Гость',
+    name: user?.name || t('guest'),
     phone: '',
     address: '',
     city: '',
@@ -97,28 +97,50 @@ const CheckoutPage: React.FC = () => {
 
     // Проверка обязательных полей
     if (!deliveryAddress.address || !deliveryAddress.city || !deliveryAddress.name || !deliveryAddress.phone) {
-      setError('Пожалуйста, заполните все поля доставки.');
+      setError(t('fill_delivery_fields'));
       setLoading(false);
       return;
     }
     if (!items || items.length === 0) {
-      setError('Корзина пуста.');
+      setError(t('cart_empty_error'));
       setLoading(false);
       return;
     }
     if (!total || total <= 0) {
-      setError('Сумма заказа некорректна.');
+      setError(t('invalid_total_error'));
       setLoading(false);
       return;
     }
 
     try {
       // Диагностика: выводим user.id и user.email
-      console.log('Оформление заказа: user.id =', user?.id, 'user.email =', user?.email);
+      console.log('Order processing: user.id =', user?.id, 'user.email =', user?.email);
+      
+      // Функция для рекурсивной очистки undefined значений
+      const cleanUndefinedValues = (obj: any): any => {
+        if (Array.isArray(obj)) {
+          return obj.map(cleanUndefinedValues);
+        } else if (obj && typeof obj === 'object') {
+          const cleaned: any = {};
+          Object.entries(obj).forEach(([key, value]) => {
+            if (value === undefined) {
+              cleaned[key] = null;
+            } else if (typeof value === 'object') {
+              cleaned[key] = cleanUndefinedValues(value);
+            } else {
+              cleaned[key] = value;
+            }
+          });
+          return cleaned;
+        }
+        return obj;
+      };
+
       // Очищаем deliveryAddress от undefined
       const cleanDeliveryAddress = Object.fromEntries(
         Object.entries(deliveryAddress).map(([k, v]) => [k, v === undefined ? '' : v])
       );
+      
       const orderData = {
         userId: user?.id || 'guest',
         items: items || [],
@@ -131,14 +153,18 @@ const CheckoutPage: React.FC = () => {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      // Выводим undefined-поля в консоль
-      const undefinedFields = findUndefinedFields(orderData);
+
+      // Очищаем все undefined значения в orderData
+      const cleanedOrderData = cleanUndefinedValues(orderData);
+      
+      // Выводим undefined-поля в консоль для диагностики
+      const undefinedFields = findUndefinedFields(cleanedOrderData);
       if (undefinedFields.length > 0) {
-        console.error('В orderData есть undefined поля:', undefinedFields);
+        console.error('orderData has undefined fields:', undefinedFields);
       }
 
       // Сохраняем заказ в Firestore
-      await addDoc(collection(db, 'orders'), orderData);
+      await addDoc(collection(db, 'orders'), cleanedOrderData);
       // Очищаем корзину
       dispatch(clearCart());
       dispatch(toggleCart());
@@ -146,7 +172,7 @@ const CheckoutPage: React.FC = () => {
       setActiveStep(3);
     } catch (error: any) {
       console.error('Ошибка создания заказа:', error);
-      setError(error?.message || 'Ошибка при создании заказа. Попробуйте еще раз.');
+      setError(error?.message || t('order_error'));
     } finally {
       setLoading(false);
     }
@@ -161,20 +187,20 @@ const CheckoutPage: React.FC = () => {
               🛒 {t('cart')}
             </Typography>
             {items.map((item) => (
-              <Card key={item.product.id} sx={{ mb: 2 }}>
+              <Card key={item.id} sx={{ mb: 2 }}>
                 <CardContent>
                   <Grid container spacing={2} alignItems="center">
                     <Grid item xs={3}>
                       <img 
-                        src={item.product.image} 
-                        alt={item.product.name}
+                        src={item.image} 
+                        alt={item.name}
                         style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 8 }}
                       />
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="subtitle1">{item.product.name}</Typography>
+                      <Typography variant="subtitle1">{item.name}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        ₪{item.product.price} / {item.product.unit}
+                        ₪{item.price} / {item.unit}
                       </Typography>
                     </Grid>
                     <Grid item xs={3}>
@@ -186,7 +212,7 @@ const CheckoutPage: React.FC = () => {
             ))}
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6">סה"כ Total:</Typography>
+              <Typography variant="h6">{t('total')}:</Typography>
               <Typography variant="h6" color="primary">₪{total.toFixed(2)}</Typography>
             </Box>
           </Box>
@@ -275,7 +301,7 @@ const CheckoutPage: React.FC = () => {
                     setError('');
                   }}
                 >
-                  Изменить способ оплаты
+                  {t('change_payment_method')}
                 </Button>
                 <CardPayment
                   amount={total}
@@ -297,7 +323,7 @@ const CheckoutPage: React.FC = () => {
                     setError('');
                   }}
                 >
-                  Изменить способ оплаты
+                  {t('change_payment_method')}
                 </Button>
                 <PayPalPayment
                   amount={total}

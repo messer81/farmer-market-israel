@@ -4,8 +4,10 @@ import { useAppSelector } from '../../hooks/redux';
 import { db } from '../../firebase';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import { Order, OrderStatus, PaymentMethod } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 const OrderHistory: React.FC = () => {
+  const { t } = useTranslation();
   const user = useAppSelector(state => state.user.user);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,23 +29,29 @@ const OrderHistory: React.FC = () => {
         querySnapshot.forEach((doc) => {
           const data = doc.data();
           console.log('Заказ:', data);
-          ordersData.push({
-            id: doc.id,
-            userId: data.userId,
-            items: data.items,
-            total: data.total,
-            status: data.status,
-            deliveryAddress: data.deliveryAddress,
-            paymentMethod: data.paymentMethod,
-            paymentId: data.paymentId,
-            notes: data.notes,
-            createdAt: data.createdAt.toDate(),
-            updatedAt: data.updatedAt.toDate(),
-          });
+          
+          // Проверяем структуру данных и обрабатываем возможные ошибки
+          try {
+            ordersData.push({
+              id: doc.id,
+              userId: data.userId || 'unknown',
+              items: data.items || [],
+              total: data.total || 0,
+              status: data.status || OrderStatus.PENDING,
+              deliveryAddress: data.deliveryAddress || {},
+              paymentMethod: data.paymentMethod || PaymentMethod.CASH,
+              paymentId: data.paymentId || null,
+              notes: data.notes || '',
+              createdAt: data.createdAt?.toDate() || new Date(),
+              updatedAt: data.updatedAt?.toDate() || new Date(),
+            });
+          } catch (error) {
+            console.error('Ошибка обработки заказа:', error, data);
+          }
         });
         setOrders(ordersData);
       } catch (error) {
-        setError('Ошибка загрузки истории заказов');
+        setError(t('order_history_error'));
       } finally {
         setLoading(false);
       }
@@ -65,8 +73,8 @@ const OrderHistory: React.FC = () => {
 
   const getPaymentMethodText = (method: PaymentMethod) => {
     switch (method) {
-      case PaymentMethod.CASH: return 'Наличные';
-      case PaymentMethod.CARD: return 'Карта';
+      case PaymentMethod.CASH: return t('cash_on_delivery');
+      case PaymentMethod.CARD: return t('credit_card');
       case PaymentMethod.PAYPAL: return 'PayPal';
       default: return method;
     }
@@ -75,7 +83,7 @@ const OrderHistory: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        🧾 История заказов
+        🧾 {t('order_history')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         userId: {user?.id} email: {user?.email}
@@ -91,11 +99,11 @@ const OrderHistory: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Дата и время</TableCell>
-                <TableCell>Статус</TableCell>
-                <TableCell>Сумма</TableCell>
-                <TableCell>Оплата</TableCell>
-                <TableCell>Товары</TableCell>
+                <TableCell>{t('date_time')}</TableCell>
+                <TableCell>{t('status')}</TableCell>
+                <TableCell>{t('total')}</TableCell>
+                <TableCell>{t('payment')}</TableCell>
+                <TableCell>{t('products')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -121,7 +129,7 @@ const OrderHistory: React.FC = () => {
       )}
       {orders.length === 0 && !loading && (
         <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-          Заказов пока нет
+          {t('no_orders_yet')}
         </Typography>
       )}
     </Box>

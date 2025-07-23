@@ -49,8 +49,10 @@ const AppContent: React.FC = () => {
   React.useEffect(() => {
     // Подписка на изменения авторизации Firebase
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      console.log('🔄 Firebase auth state changed:', firebaseUser ? 'logged in' : 'logged out');
       if (firebaseUser) {
         // Пользователь залогинен
+        console.log('👤 Setting user in Redux:', firebaseUser.email);
         dispatch(setUser({
           id: firebaseUser.uid,
           name: firebaseUser.displayName || '',
@@ -63,6 +65,7 @@ const AppContent: React.FC = () => {
         dispatch(setToken(token));
       } else {
         // Пользователь разлогинен
+        console.log('🚪 Clearing user from Redux');
         dispatch(clearUser());
       }
     });
@@ -77,7 +80,13 @@ const AppContent: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<WelcomeScreen onBuyerClick={() => navigate('/welcome')} onSellerClick={() => navigate('/seller')} />} />
-      <Route path="/welcome" element={<WelcomePage onLoginClick={() => navigate('/catalog')} onRegisterClick={() => navigate('/catalog')} onBack={() => navigate('/')} />} />
+      <Route path="/welcome" element={<WelcomePage onLoginClick={() => {
+        console.log('🔄 App: Navigating to /catalog');
+        navigate('/catalog');
+      }} onRegisterClick={() => {
+        console.log('🔄 App: Navigating to /catalog');
+        navigate('/catalog');
+      }} onBack={() => navigate('/')} />} />
       <Route path="/catalog" element={<CatalogPage />} />
       <Route path="/seller" element={<SellerStubPage onBack={() => navigate('/')} />} />
       <Route path="/orders" element={<OrderHistory />} />

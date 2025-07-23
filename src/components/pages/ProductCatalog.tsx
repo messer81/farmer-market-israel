@@ -191,6 +191,8 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ cartRef }) => {
   const filteredProducts = useAppSelector(selectFilteredProducts);
   const { t } = useTranslation();
   
+  console.log('🔄 ProductCatalog: Rendering, products:', filteredProducts.length);
+  
   // Хук для анимации перелёта
   const {
     isFlying,
@@ -205,6 +207,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ cartRef }) => {
   const [modalQuantity, setModalQuantity] = useState(1);
 
   useEffect(() => {
+    console.log('🔄 ProductCatalog: Fetching products');
     dispatch(fetchProducts());
   }, [dispatch]);
 
@@ -329,38 +332,65 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ cartRef }) => {
           }}
         />
         
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>{t('category')}</InputLabel>
-          <Select
-            value={selectedCategory || ''}
-            onChange={(e) => dispatch(setSelectedCategory(e.target.value as ProductCategory || null))}
-            label={t('category')}
+        {/* 🏷️ Кнопки категорий вместо выпадающего списка */}
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 1, 
+          flexWrap: 'wrap', 
+          justifyContent: 'center',
+          mt: 2
+        }}>
+          {/* Кнопка "Все категории" */}
+          <Button
+            variant={selectedCategory === null ? "contained" : "outlined"}
+            size="small"
+            onClick={() => dispatch(setSelectedCategory(null))}
             sx={{
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              borderRadius: 1,
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 1,
-                '& fieldset': {
-                  borderColor: 'rgba(255,255,255,0.3)',
-                },
-                '&:hover fieldset': {
-                  borderColor: 'rgba(255,255,255,0.5)',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#4CAF50',
-                },
+              borderRadius: 2,
+              px: 2,
+              py: 1,
+              fontWeight: 600,
+              textTransform: 'none',
+              backgroundColor: selectedCategory === null ? '#4CAF50' : 'rgba(255,255,255,0.9)',
+              color: selectedCategory === null ? 'white' : '#333',
+              borderColor: selectedCategory === null ? '#4CAF50' : '#ddd',
+              '&:hover': {
+                backgroundColor: selectedCategory === null ? '#45a049' : 'rgba(255,255,255,1)',
+                borderColor: selectedCategory === null ? '#45a049' : '#4CAF50',
               },
+              boxShadow: selectedCategory === null ? '0 2px 8px rgba(76,175,80,0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
             }}
           >
-            <MenuItem value="">{t('all_categories')}</MenuItem>
-            {Object.values(ProductCategory).map((category) => (
-              <MenuItem key={category} value={category}>
-                {getCategoryEmoji(category)} {category}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            🌾 {t('all_categories')}
+          </Button>
+          
+          {/* Кнопки категорий */}
+          {Object.values(ProductCategory).map((category) => (
+            <Button
+              key={category}
+              variant={selectedCategory === category ? "contained" : "outlined"}
+              size="small"
+              onClick={() => dispatch(setSelectedCategory(category))}
+              sx={{
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                fontWeight: 600,
+                textTransform: 'none',
+                backgroundColor: selectedCategory === category ? '#4CAF50' : 'rgba(255,255,255,0.9)',
+                color: selectedCategory === category ? 'white' : '#333',
+                borderColor: selectedCategory === category ? '#4CAF50' : '#ddd',
+                '&:hover': {
+                  backgroundColor: selectedCategory === category ? '#45a049' : 'rgba(255,255,255,1)',
+                  borderColor: selectedCategory === category ? '#45a049' : '#4CAF50',
+                },
+                boxShadow: selectedCategory === category ? '0 2px 8px rgba(76,175,80,0.3)' : '0 2px 4px rgba(0,0,0,0.1)',
+              }}
+            >
+              {getCategoryEmoji(category)} {t(category)}
+            </Button>
+          ))}
+        </Box>
       </Box>
 
       {/* 📦 Каталог товаров */}

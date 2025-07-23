@@ -39,25 +39,31 @@ const OrdersExport: React.FC = () => {
       const ordersData: Order[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        ordersData.push({
-          id: doc.id,
-          userId: data.userId,
-          items: data.items,
-          total: data.total,
-          status: data.status,
-          deliveryAddress: data.deliveryAddress,
-          paymentMethod: data.paymentMethod,
-          paymentId: data.paymentId,
-          notes: data.notes,
-          createdAt: data.createdAt.toDate(),
-          updatedAt: data.updatedAt.toDate(),
-        });
+        
+        // Проверяем структуру данных и обрабатываем возможные ошибки
+        try {
+          ordersData.push({
+            id: doc.id,
+            userId: data.userId || 'unknown',
+            items: data.items || [],
+            total: data.total || 0,
+            status: data.status || OrderStatus.PENDING,
+            deliveryAddress: data.deliveryAddress || {},
+            paymentMethod: data.paymentMethod || PaymentMethod.CASH,
+            paymentId: data.paymentId || null,
+            notes: data.notes || '',
+            createdAt: data.createdAt?.toDate() || new Date(),
+            updatedAt: data.updatedAt?.toDate() || new Date(),
+          });
+        } catch (error) {
+          console.error('Ошибка обработки заказа в админке:', error, data);
+        }
       });
       
       setOrders(ordersData);
     } catch (error) {
       console.error('Ошибка загрузки заказов:', error);
-      setError('Ошибка загрузки заказов');
+      setError(t('order_history_error'));
     } finally {
       setLoading(false);
     }
@@ -73,16 +79,16 @@ const OrdersExport: React.FC = () => {
     // Подготавливаем данные для CSV
     const csvData = [
       [
-        'ID заказа',
-        'Дата и время',
-        'Клиент',
-        'Телефон',
-        'Адрес',
-        'Способ оплаты',
-        'Статус',
-        'Сумма',
-        'Товары',
-        'Примечания'
+        t('order_id'),
+        t('date_time'),
+        t('client'),
+        t('phone'),
+        t('address'),
+        t('payment_method'),
+        t('status'),
+        t('total'),
+        t('products'),
+        t('notes')
       ]
     ];
 
@@ -94,9 +100,9 @@ const OrdersExport: React.FC = () => {
       csvData.push([
         order.id,
         `${order.createdAt.toLocaleDateString('ru-RU')} ${order.createdAt.toLocaleTimeString('ru-RU')}`,
-        order.deliveryAddress.name,
-        order.deliveryAddress.phone,
-        `${order.deliveryAddress.address}, ${order.deliveryAddress.city}`,
+        order.deliveryAddress.name || '',
+        order.deliveryAddress.phone || '',
+        `${order.deliveryAddress.address || ''}, ${order.deliveryAddress.city || ''}`,
         order.paymentMethod,
         order.status,
         `₪${order.total.toFixed(2)}`,
@@ -133,16 +139,16 @@ const OrdersExport: React.FC = () => {
     // Подготавливаем данные для Excel
     const excelData = [
       [
-        'ID заказа',
-        'Дата и время',
-        'Клиент',
-        'Телефон',
-        'Адрес',
-        'Способ оплаты',
-        'Статус',
-        'Сумма',
-        'Товары',
-        'Примечания'
+        t('order_id'),
+        t('date_time'),
+        t('client'),
+        t('phone'),
+        t('address'),
+        t('payment_method'),
+        t('status'),
+        t('total'),
+        t('products'),
+        t('notes')
       ]
     ];
 
@@ -154,9 +160,9 @@ const OrdersExport: React.FC = () => {
       excelData.push([
         order.id,
         `${order.createdAt.toLocaleDateString('ru-RU')} ${order.createdAt.toLocaleTimeString('ru-RU')}`,
-        order.deliveryAddress.name,
-        order.deliveryAddress.phone,
-        `${order.deliveryAddress.address}, ${order.deliveryAddress.city}`,
+        order.deliveryAddress.name || '',
+        order.deliveryAddress.phone || '',
+        `${order.deliveryAddress.address || ''}, ${order.deliveryAddress.city || ''}`,
         order.paymentMethod,
         order.status,
         `₪${order.total.toFixed(2)}`,
@@ -188,8 +194,8 @@ const OrdersExport: React.FC = () => {
 
   const getPaymentMethodText = (method: PaymentMethod) => {
     switch (method) {
-      case PaymentMethod.CASH: return 'Наличные';
-      case PaymentMethod.CARD: return 'Карта';
+      case PaymentMethod.CASH: return t('cash_on_delivery');
+      case PaymentMethod.CARD: return t('credit_card');
       case PaymentMethod.PAYPAL: return 'PayPal';
       default: return method;
     }
@@ -198,7 +204,7 @@ const OrdersExport: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        📊 Управление заказами
+        📊 {t('export_orders')}
       </Typography>
 
       <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
@@ -208,7 +214,7 @@ const OrdersExport: React.FC = () => {
           onClick={fetchOrders}
           disabled={loading}
         >
-          Обновить
+          {t('refresh_orders')}
         </Button>
         <ButtonGroup variant="outlined">
           <Button
@@ -216,14 +222,14 @@ const OrdersExport: React.FC = () => {
             onClick={exportToCSV}
             disabled={orders.length === 0}
           >
-            CSV
+            {t('export_to_csv')}
           </Button>
           <Button
             startIcon={<TableChart />}
             onClick={exportToExcel}
             disabled={orders.length === 0}
           >
-            Excel
+            {t('export_to_excel')}
           </Button>
         </ButtonGroup>
       </Box>
@@ -244,14 +250,14 @@ const OrdersExport: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
-                <TableCell>Дата и время</TableCell>
-                <TableCell>Клиент</TableCell>
-                <TableCell>Телефон</TableCell>
-                <TableCell>Адрес</TableCell>
-                <TableCell>Оплата</TableCell>
-                <TableCell>Статус</TableCell>
-                <TableCell>Сумма</TableCell>
-                <TableCell>Товары</TableCell>
+                <TableCell>{t('date_time')}</TableCell>
+                <TableCell>{t('client')}</TableCell>
+                <TableCell>{t('phone')}</TableCell>
+                <TableCell>{t('address')}</TableCell>
+                <TableCell>{t('payment')}</TableCell>
+                <TableCell>{t('status')}</TableCell>
+                <TableCell>{t('total')}</TableCell>
+                <TableCell>{t('products')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -261,10 +267,10 @@ const OrdersExport: React.FC = () => {
                   <TableCell>
                     {order.createdAt.toLocaleDateString('ru-RU')} {order.createdAt.toLocaleTimeString('ru-RU')}
                   </TableCell>
-                  <TableCell>{order.deliveryAddress.name}</TableCell>
-                  <TableCell>{order.deliveryAddress.phone}</TableCell>
+                  <TableCell>{order.deliveryAddress.name || ''}</TableCell>
+                  <TableCell>{order.deliveryAddress.phone || ''}</TableCell>
                   <TableCell>
-                    {order.deliveryAddress.address}, {order.deliveryAddress.city}
+                    {order.deliveryAddress.address || ''}, {order.deliveryAddress.city || ''}
                   </TableCell>
                   <TableCell>{getPaymentMethodText(order.paymentMethod)}</TableCell>
                   <TableCell>
@@ -289,7 +295,7 @@ const OrdersExport: React.FC = () => {
 
       {orders.length === 0 && !loading && (
         <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-          Заказов пока нет
+          {t('no_orders_yet')}
         </Typography>
       )}
     </Box>

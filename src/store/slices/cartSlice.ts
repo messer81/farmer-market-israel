@@ -35,8 +35,8 @@ const cartSlice = createSlice({
       } else {
         state.items.push({ ...product, quantity });
       }
-      // Если есть поле total, пересчитываем его так:
-      // state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      // Пересчитываем общую сумму
+      state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
       state.items = state.items.filter(item => item.id !== action.payload);

@@ -27,6 +27,7 @@ const initialState: ProductsState = {
 export const fetchProducts = createAsyncThunk(
   'products/fetchProducts',
   async (_, { getState }) => {
+    console.log('🔄 fetchProducts: Starting...');
     const state = getState() as { products: ProductsState };
     const { lastFetched, items } = state.products;
     
@@ -36,6 +37,7 @@ export const fetchProducts = createAsyncThunk(
     
     // Если данные загружены недавно и есть товары, возвращаем кэшированные
     if (lastFetched && (now - lastFetched) < CACHE_DURATION && items.length > 0) {
+      console.log('📦 fetchProducts: Using cached data, items:', items.length);
       return items;
     }
     
@@ -149,11 +151,13 @@ const productsSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
+        console.log('✅ fetchProducts: Fulfilled, items:', action.payload.length);
         state.loading = false;
         state.items = action.payload;
         state.lastFetched = Date.now();
       })
       .addCase(fetchProducts.rejected, (state, action) => {
+        console.error('❌ fetchProducts: Rejected, error:', action.error.message);
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch products';
       });

@@ -76,6 +76,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
   };
 
   const handleAuthSuccess = () => {
+    console.log('✅ WelcomePage: Auth success, calling onLoginClick');
     setAuthOpen(false);
     onLoginClick();
   };
@@ -300,7 +301,7 @@ const WelcomePage: React.FC<WelcomePageProps> = ({ onLoginClick, onRegisterClick
                   minWidth: 160
                 }}
               >
-                Войти как гость
+                {t('login_as_guest')}
               </Button>
             </Box>
           </Paper>

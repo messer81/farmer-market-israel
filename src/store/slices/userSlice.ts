@@ -7,7 +7,7 @@ interface UserState {
 }
 
 const initialState: UserState = {
-  user: null, // null = гость
+  user: null, // null = guest
   token: null,
 };
 
@@ -31,7 +31,7 @@ const userSlice = createSlice({
     loginAsGuest: (state) => {
       state.user = {
         id: 'guest',
-        name: 'Гость',
+        name: 'Guest', // Будет переведено в компонентах
         email: '',
         phone: '',
         address: '',

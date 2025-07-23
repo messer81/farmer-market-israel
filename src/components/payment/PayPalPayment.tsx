@@ -55,7 +55,7 @@ const PayPalPayment: React.FC<PayPalPaymentProps> = ({ amount, onSuccess, onErro
             });
           }}
           onError={(err) => {
-            onError('PayPal payment failed');
+            onError(t('paypal_payment_failed'));
           }}
         />
       </PayPalScriptProvider>
