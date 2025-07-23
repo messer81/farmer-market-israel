@@ -19,7 +19,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { ArrowBack, ArrowForward, ShoppingCart, LocalShipping, Payment } from '@mui/icons-material';
+import { ArrowBack, ArrowForward } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { clearCart, toggleCart } from '../../store/slices/cartSlice';
 import { useTranslation } from 'react-i18next';
@@ -95,11 +95,8 @@ const CheckoutPage: React.FC = () => {
       return;
     }
 
-    try {
-      // Диагностика: выводим user.id и user.email
-      console.log('Order processing: user.id =', user?.id, 'user.email =', user?.email);
-      
-      // Функция для рекурсивной очистки undefined значений
+          try {
+        // Функция для рекурсивной очистки undefined значений
       const cleanUndefinedValues = (obj: any): any => {
         if (Array.isArray(obj)) {
           return obj.map(cleanUndefinedValues);
@@ -128,17 +125,14 @@ const CheckoutPage: React.FC = () => {
         Object.entries(deliveryAddress).map(([k, v]) => [k, v === undefined ? '' : v])
       );
       
-             // Теперь структура корзины уже соответствует структуре заказа
-       console.log('🔄 CheckoutPage: Исходные items из корзины:', items);
-       const cleanedItems = items.map((cartItem: any) => {
-         // Проверяем, какая структура у cartItem
-         if (cartItem.product) {
-           // Новая структура: { product: Product, quantity: number }
-           console.log('✅ CheckoutPage: Используем новую структуру:', cartItem);
-           return cartItem;
-         } else {
-           // Старая структура: CartItem extends Product
-           console.log('🔄 CheckoutPage: Конвертируем старую структуру в новую');
+                     // Теперь структура корзины уже соответствует структуре заказа
+        const cleanedItems = items.map((cartItem: any) => {
+          // Проверяем, какая структура у cartItem
+          if (cartItem.product) {
+            // Новая структура: { product: Product, quantity: number }
+            return cartItem;
+          } else {
+            // Старая структура: CartItem extends Product
            const orderItem = {
              product: {
                id: cartItem.id,
@@ -164,12 +158,10 @@ const CheckoutPage: React.FC = () => {
                reviews: cartItem.reviews
              },
              quantity: cartItem.quantity
-           };
-           console.log('✅ CheckoutPage: Преобразованный item:', orderItem);
-           return orderItem;
-         }
-       });
-      console.log('✅ CheckoutPage: Очищенные items:', cleanedItems);
+                         };
+              return orderItem;
+            }
+          });
       
              // Создаем простую дату для заказа
        const orderDate = new Date();
@@ -190,13 +182,8 @@ const CheckoutPage: React.FC = () => {
       // Очищаем все undefined значения в orderData
       const cleanedOrderData = cleanUndefinedValues(orderData);
 
-      // Сохраняем заказ в Firestore
-      console.log('🔄 CheckoutPage: Сохраняем заказ в Firestore:', cleanedOrderData);
-      
-                   // НЕ изменяем timestamps - они уже установлены как локальная дата
-       
-       const docRef = await addDoc(collection(db, 'orders'), cleanedOrderData);
-      console.log('✅ CheckoutPage: Заказ успешно создан с ID:', docRef.id);
+              // Сохраняем заказ в Firestore
+        const docRef = await addDoc(collection(db, 'orders'), cleanedOrderData);
       
       // Очищаем корзину
       dispatch(clearCart());

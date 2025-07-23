@@ -17,35 +17,25 @@ const OrderHistory: React.FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user) {
-        console.log('❌ OrderHistory: Нет пользователя, пропускаем загрузку заказов');
         return;
       }
       
-      console.log('🔄 OrderHistory: Начинаем загрузку заказов для пользователя:', user.id, user.email);
       setLoading(true);
       setError('');
       
       try {
         // Получаем заказы для текущего пользователя
-        console.log('🔍 OrderHistory: Загружаем заказы для пользователя:', user.id);
-        
-
         const q = query(
           collection(db, 'orders'),
           where('userId', '==', user.id),
           orderBy('createdAt', 'desc')
         );
         
-        console.log('🔍 OrderHistory: Выполняем запрос к Firestore...');
         const querySnapshot = await getDocs(q);
-        console.log('📊 OrderHistory: Получено документов:', querySnapshot.size);
-        
-
         
         const ordersData: Order[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          console.log('📋 OrderHistory: Обрабатываем заказ:', doc.id, data);
           
           // Проверяем структуру данных и обрабатываем возможные ошибки
           try {
@@ -91,14 +81,12 @@ const OrderHistory: React.FC = () => {
               updatedAt: updatedAt,
             };
             
-            console.log('✅ OrderHistory: Успешно обработан заказ:', order);
             ordersData.push(order);
           } catch (error: any) {
             console.error('❌ OrderHistory: Ошибка обработки заказа:', error, data);
           }
         });
         
-        console.log('🎉 OrderHistory: Всего обработано заказов:', ordersData.length);
         setOrders(ordersData);
       } catch (error: any) {
         console.error('❌ OrderHistory: Ошибка загрузки заказов:', error);

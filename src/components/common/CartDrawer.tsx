@@ -23,7 +23,6 @@ import AuthFrame from '../pages/AuthFrame';
 const CartDrawer: React.FC = () => {
   const dispatch = useAppDispatch();
   const { items, total, isOpen } = useAppSelector(state => state.cart);
-  console.log('🛒 CartDrawer: items:', items.length, 'total:', total);
   // Получаем флаги showCheckout и authOpen из Redux, чтобы они не сбрасывались при перерисовке
   const showCheckout = useAppSelector(state => state.cart.showCheckout);
   const authOpen = useAppSelector(state => state.cart.authOpen);

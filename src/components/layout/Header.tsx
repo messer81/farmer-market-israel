@@ -20,6 +20,7 @@ import {
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { toggleCart } from '../../store/slices/cartSlice';
 import { clearUser } from '../../store/slices/userSlice';
+import { clearCart } from '../../store/slices/cartSlice';
 import { setLanguage, type Language as LanguageType } from '../../store/slices/languageSlice';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
@@ -99,6 +100,7 @@ const Header: React.FC<HeaderProps> = ({
 
   const handleLogout = () => {
     dispatch(clearUser());
+    dispatch(clearCart()); // Очищаем корзину
     setProfileAnchor(null);
     localStorage.removeItem('jwt');
   };

@@ -8,8 +8,6 @@ import backgroundImage from '../../assets/images/Farm Sharing background.jpg';
 const CatalogPage: React.FC = () => {
   const navigate = useNavigate();
   const cartRef = useRef<HTMLButtonElement>(null);
-  
-  console.log('🔄 CatalogPage: Rendering');
 
   return (
     <div

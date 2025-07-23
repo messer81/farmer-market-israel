@@ -16,6 +16,7 @@ import {
 import GoogleLogo from '../common/GoogleLogo';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { setUser, clearUser, setToken } from '../../store/slices/userSlice';
+import { clearCart } from '../../store/slices/cartSlice';
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -24,8 +25,7 @@ import {
   signInWithPopup,
   sendPasswordResetEmail,
   setPersistence,
-  browserLocalPersistence,
-  browserSessionPersistence
+  browserLocalPersistence
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../../firebase';
@@ -206,6 +206,7 @@ const AuthFrame: React.FC<AuthFrameProps> = ({ open, onClose, onSuccess, initial
   const handleLogout = async () => {
     await signOut(auth);
     dispatch(clearUser());
+    dispatch(clearCart()); // Очищаем корзину
     // localStorage.removeItem('jwt'); // больше не нужно
   };
 

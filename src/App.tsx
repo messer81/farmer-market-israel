@@ -8,6 +8,7 @@ import { useAppSelector, useAppDispatch } from './hooks/redux';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import { setUser, clearUser, setToken } from './store/slices/userSlice';
+import { clearCart } from './store/slices/cartSlice';
 import Header from './components/layout/Header';
 import ProductCatalog from './components/pages/ProductCatalog';
 import CartDrawer from './components/common/CartDrawer';
@@ -49,10 +50,8 @@ const AppContent: React.FC = () => {
   React.useEffect(() => {
     // Подписка на изменения авторизации Firebase
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('🔄 Firebase auth state changed:', firebaseUser ? 'logged in' : 'logged out');
       if (firebaseUser) {
         // Пользователь залогинен
-        console.log('👤 Setting user in Redux:', firebaseUser.email);
         dispatch(setUser({
           id: firebaseUser.uid,
           name: firebaseUser.displayName || '',
@@ -65,8 +64,8 @@ const AppContent: React.FC = () => {
         dispatch(setToken(token));
       } else {
         // Пользователь разлогинен
-        console.log('🚪 Clearing user from Redux');
         dispatch(clearUser());
+        dispatch(clearCart()); // Очищаем корзину
       }
     });
     return () => unsubscribe();
@@ -81,10 +80,8 @@ const AppContent: React.FC = () => {
     <Routes>
       <Route path="/" element={<WelcomeScreen onBuyerClick={() => navigate('/welcome')} onSellerClick={() => navigate('/seller')} />} />
       <Route path="/welcome" element={<WelcomePage onLoginClick={() => {
-        console.log('🔄 App: Navigating to /catalog');
         navigate('/catalog');
       }} onRegisterClick={() => {
-        console.log('🔄 App: Navigating to /catalog');
         navigate('/catalog');
       }} onBack={() => navigate('/')} />} />
       <Route path="/catalog" element={<CatalogPage />} />
