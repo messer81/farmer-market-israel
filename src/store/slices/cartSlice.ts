@@ -1,10 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Product } from '../../types';
+import { Product, CartItem } from '../../types';
 import i18n from '../../i18n';
-
-interface CartItem extends Product {
-  quantity: number;
-}
 
 // Добавляем новые поля для управления состоянием корзины и оформления заказа через Redux
 interface CartState {
@@ -29,24 +25,24 @@ const cartSlice = createSlice({
   reducers: {
     addToCart: (state, action: PayloadAction<{ product: Product; quantity: number }>) => {
       const { product, quantity } = action.payload;
-      const existing = state.items.find(item => item.id === product.id);
+      const existing = state.items.find(item => item.product.id === product.id);
       if (existing) {
         existing.quantity += quantity;
       } else {
-        state.items.push({ ...product, quantity });
+        state.items.push({ product, quantity });
       }
       // Пересчитываем общую сумму
-      state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      state.total = state.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
     },
     removeFromCart: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter(item => item.id !== action.payload);
-      state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      state.items = state.items.filter(item => item.product.id !== action.payload);
+      state.total = state.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
     },
     updateQuantity: (state, action: PayloadAction<{ id: string; quantity: number }>) => {
-      const item = state.items.find(item => item.id === action.payload.id);
+      const item = state.items.find(item => item.product.id === action.payload.id);
       if (item) {
         item.quantity = action.payload.quantity;
-        state.total = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        state.total = state.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
       }
     },
     clearCart: (state) => {

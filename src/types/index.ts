@@ -48,14 +48,15 @@ export interface Order {
   updatedAt: Date;
 }
 
-// 📦 Элемент корзины (для заказов)
+// 📦 Элемент заказа/корзины (унифицированная структура)
 export interface OrderItem {
   product: Product;
   quantity: number;
 }
 
-// 🛒 Элемент корзины (для Redux store)
-export interface CartItem extends Product {
+// 🛒 Элемент корзины (для Redux store) - теперь использует ту же структуру
+export interface CartItem {
+  product: Product;
   quantity: number;
 }
 
@@ -86,12 +87,6 @@ export enum OrderStatus {
   CANCELLED = 'cancelled'
 }
 
-// 🛒 Элемент корзины
-export interface CartItem {
-  product: Product;
-  quantity: number;
-}
-
 // 🏪 Ферма
 export interface Farm {
   id: string;
@@ -115,4 +110,74 @@ export interface User {
   address: string;
   preferredLanguage: 'he' | 'en' | 'ru';
   isGuest?: boolean; // Гостевой пользователь
-} 
+}
+
+// 🌐 Функция для получения названия продукта на текущем языке
+export const getProductName = (product: Product, language: string = 'he'): string => {
+  switch (language) {
+    case 'en':
+      return product.nameEn || product.name;
+    case 'ru':
+      return product.nameRu || product.name;
+    case 'he':
+    default:
+      return product.nameHe || product.name;
+  }
+};
+
+// 🌐 Функция для получения описания продукта на текущем языке
+export const getProductDescription = (product: Product, language: string = 'he'): string => {
+  switch (language) {
+    case 'en':
+      return product.descriptionEn || product.description;
+    case 'ru':
+      return product.descriptionRu || product.description;
+    case 'he':
+    default:
+      return product.descriptionHe || product.description;
+  }
+};
+
+// 🔄 Функция для конвертации старой структуры CartItem в новую
+export const convertOldCartItem = (oldItem: any): CartItem => {
+  if (oldItem.product) {
+    // Уже новая структура
+    return oldItem;
+  } else {
+    // Старая структура (CartItem extends Product)
+    const product: any = {
+      id: oldItem.id,
+      name: oldItem.name,
+      nameEn: oldItem.nameEn,
+      nameRu: oldItem.nameRu,
+      nameHe: oldItem.nameHe,
+      price: oldItem.price,
+      currency: oldItem.currency,
+      category: oldItem.category,
+      description: oldItem.description,
+      descriptionEn: oldItem.descriptionEn,
+      descriptionRu: oldItem.descriptionRu,
+      descriptionHe: oldItem.descriptionHe,
+      image: oldItem.image,
+      farmId: oldItem.farmId,
+      farmName: oldItem.farmName,
+      location: oldItem.location,
+      organic: oldItem.organic,
+      inStock: oldItem.inStock,
+      unit: oldItem.unit
+    };
+    
+    // Добавляем rating и reviews только если они не undefined
+    if (oldItem.rating !== undefined) {
+      product.rating = oldItem.rating;
+    }
+    if (oldItem.reviews !== undefined) {
+      product.reviews = oldItem.reviews;
+    }
+    
+    return {
+      product,
+      quantity: oldItem.quantity
+    };
+  }
+}; 

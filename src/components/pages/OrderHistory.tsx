@@ -3,12 +3,13 @@ import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, Ta
 import { useAppSelector } from '../../hooks/redux';
 import { db } from '../../firebase';
 import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
-import { Order, OrderStatus, PaymentMethod } from '../../types';
+import { Order, OrderStatus, PaymentMethod, getProductName } from '../../types';
 import { useTranslation } from 'react-i18next';
 
 const OrderHistory: React.FC = () => {
   const { t } = useTranslation();
   const user = useAppSelector(state => state.user.user);
+  const currentLanguage = useAppSelector(state => state.language.currentLanguage);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -27,14 +28,19 @@ const OrderHistory: React.FC = () => {
       try {
         // Получаем заказы для текущего пользователя
         console.log('🔍 OrderHistory: Загружаем заказы для пользователя:', user.id);
+        
+
         const q = query(
           collection(db, 'orders'),
-          where('userId', '==', user.id)
+          where('userId', '==', user.id),
+          orderBy('createdAt', 'desc')
         );
         
         console.log('🔍 OrderHistory: Выполняем запрос к Firestore...');
         const querySnapshot = await getDocs(q);
         console.log('📊 OrderHistory: Получено документов:', querySnapshot.size);
+        
+
         
         const ordersData: Order[] = [];
         querySnapshot.forEach((doc) => {
@@ -43,40 +49,32 @@ const OrderHistory: React.FC = () => {
           
           // Проверяем структуру данных и обрабатываем возможные ошибки
           try {
-            // Безопасная обработка дат
+            // Безопасная обработка дат - НИКОГДА НЕ ИЗМЕНЯЕМ ДАННЫЕ ИЗ FIREBASE
             let createdAt: Date;
             let updatedAt: Date;
             
-            // Проверяем createdAt
+            // Простая обработка даты
             if (data.createdAt && typeof data.createdAt === 'object' && data.createdAt.toDate) {
               // Это Firestore Timestamp
               createdAt = data.createdAt.toDate();
-            } else if (data.createdAt && typeof data.createdAt === 'object' && Object.keys(data.createdAt).length === 0) {
-              // Пустой объект - используем текущую дату
-              console.warn('⚠️ OrderHistory: createdAt пустой объект, используем текущую дату');
-              createdAt = new Date();
             } else if (data.createdAt instanceof Date) {
               // Это уже Date объект
               createdAt = data.createdAt;
             } else {
-              // Fallback - текущая дата
+              // Fallback - используем текущее время
               createdAt = new Date();
             }
             
-            // Проверяем updatedAt
+            // Простая обработка updatedAt
             if (data.updatedAt && typeof data.updatedAt === 'object' && data.updatedAt.toDate) {
               // Это Firestore Timestamp
               updatedAt = data.updatedAt.toDate();
-            } else if (data.updatedAt && typeof data.updatedAt === 'object' && Object.keys(data.updatedAt).length === 0) {
-              // Пустой объект - используем текущую дату
-              console.warn('⚠️ OrderHistory: updatedAt пустой объект, используем текущую дату');
-              updatedAt = new Date();
             } else if (data.updatedAt instanceof Date) {
               // Это уже Date объект
               updatedAt = data.updatedAt;
             } else {
-              // Fallback - текущая дата
-              updatedAt = new Date();
+              // Если нет updatedAt - используем createdAt
+              updatedAt = createdAt;
             }
             
             const order: Order = {
@@ -95,14 +93,14 @@ const OrderHistory: React.FC = () => {
             
             console.log('✅ OrderHistory: Успешно обработан заказ:', order);
             ordersData.push(order);
-          } catch (error) {
+          } catch (error: any) {
             console.error('❌ OrderHistory: Ошибка обработки заказа:', error, data);
           }
         });
         
         console.log('🎉 OrderHistory: Всего обработано заказов:', ordersData.length);
         setOrders(ordersData);
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ OrderHistory: Ошибка загрузки заказов:', error);
         setError(t('order_history_error'));
       } finally {
@@ -173,9 +171,31 @@ const OrderHistory: React.FC = () => {
                   <TableCell>{getPaymentMethodText(order.paymentMethod)}</TableCell>
                                      <TableCell>
                      {order.items.map((orderItem: any) => {
-                       // Теперь у нас правильная структура OrderItem: { product: Product, quantity: number }
-                       const productName = orderItem.product?.name || 'Unknown Product';
-                       return `${productName} x${orderItem.quantity}`;
+                       try {
+                         // Проверяем структуру orderItem
+                         if (!orderItem) {
+                           console.warn('⚠️ OrderHistory: orderItem пустой:', orderItem);
+                           return 'Unknown Product x1';
+                         }
+                         
+                         // Проверяем, какая структура у orderItem
+                         if (orderItem.product) {
+                           // Новая структура: { product: Product, quantity: number }
+                           const productName = getProductName(orderItem.product, currentLanguage) || 'Unknown Product';
+                           return `${productName} x${orderItem.quantity || 1}`;
+                         } else if (orderItem.id && orderItem.name) {
+                           // Старая структура: CartItem extends Product (прямо продукт с quantity)
+                           console.log('🔄 OrderHistory: Обрабатываем старую структуру orderItem:', orderItem);
+                           const productName = getProductName(orderItem, currentLanguage) || 'Unknown Product';
+                           return `${productName} x${orderItem.quantity || 1}`;
+                         } else {
+                           console.warn('⚠️ OrderHistory: Неизвестная структура orderItem:', orderItem);
+                           return 'Unknown Product x1';
+                         }
+                       } catch (error) {
+                         console.error('❌ OrderHistory: Ошибка получения названия продукта:', error, orderItem);
+                         return 'Unknown Product x1';
+                       }
                      }).join(', ')}
                    </TableCell>
                 </TableRow>

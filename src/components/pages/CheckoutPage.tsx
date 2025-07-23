@@ -25,7 +25,7 @@ import { clearCart, toggleCart } from '../../store/slices/cartSlice';
 import { useTranslation } from 'react-i18next';
 import { DeliveryAddress, PaymentMethod, OrderStatus } from '../../types';
 import { db } from '../../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import CardPayment from '../payment/CardPayment';
 import PayPalPayment from '../payment/PayPalPayment';
 import WelcomePage from './WelcomePage';
@@ -72,24 +72,7 @@ const CheckoutPage: React.FC = () => {
     }));
   };
 
-  // Функция для поиска undefined-полей во вложенных объектах
-  function findUndefinedFields(obj: any, path: string = '') {
-    let result: string[] = [];
-    if (Array.isArray(obj)) {
-      obj.forEach((item: any, idx: number) => {
-        result = result.concat(findUndefinedFields(item, `${path}[${idx}]`));
-      });
-    } else if (obj && typeof obj === 'object') {
-      Object.entries(obj).forEach(([key, value]) => {
-        if (value === undefined) {
-          result.push(`${path ? path + '.' : ''}${key}`);
-        } else if (typeof value === 'object') {
-          result = result.concat(findUndefinedFields(value, `${path ? path + '.' : ''}${key}`));
-        }
-      });
-    }
-    return result;
-  }
+
 
   const handleSubmitOrder = async () => {
     setLoading(true);
@@ -121,11 +104,15 @@ const CheckoutPage: React.FC = () => {
         if (Array.isArray(obj)) {
           return obj.map(cleanUndefinedValues);
         } else if (obj && typeof obj === 'object') {
+          // Проверяем, не является ли это Date объектом
+          if (obj instanceof Date) {
+            return obj; // Возвращаем Date как есть
+          }
           const cleaned: any = {};
           Object.entries(obj).forEach(([key, value]) => {
             if (value === undefined) {
               cleaned[key] = null;
-            } else if (typeof value === 'object') {
+            } else if (typeof value === 'object' && !(value instanceof Date)) {
               cleaned[key] = cleanUndefinedValues(value);
             } else {
               cleaned[key] = value;
@@ -141,74 +128,72 @@ const CheckoutPage: React.FC = () => {
         Object.entries(deliveryAddress).map(([k, v]) => [k, v === undefined ? '' : v])
       );
       
-             // Преобразуем структуру корзины в структуру заказа
+             // Теперь структура корзины уже соответствует структуре заказа
        console.log('🔄 CheckoutPage: Исходные items из корзины:', items);
        const cleanedItems = items.map((cartItem: any) => {
-         // В корзине CartItem расширяет Product, поэтому у нас есть все поля продукта напрямую
-         // Преобразуем в структуру OrderItem: { product: Product, quantity: number }
-         const orderItem = {
-           product: {
-             id: cartItem.id,
-             name: cartItem.name,
-             nameEn: cartItem.nameEn,
-             nameRu: cartItem.nameRu,
-             nameHe: cartItem.nameHe,
-             price: cartItem.price,
-             currency: cartItem.currency,
-             category: cartItem.category,
-             description: cartItem.description,
-             descriptionEn: cartItem.descriptionEn,
-             descriptionRu: cartItem.descriptionRu,
-             descriptionHe: cartItem.descriptionHe,
-             image: cartItem.image,
-             farmId: cartItem.farmId,
-             farmName: cartItem.farmName,
-             location: cartItem.location,
-             organic: cartItem.organic,
-             inStock: cartItem.inStock,
-             unit: cartItem.unit,
-             rating: cartItem.rating,
-             reviews: cartItem.reviews
-           },
-           quantity: cartItem.quantity
-         };
-         console.log('✅ CheckoutPage: Преобразованный item:', orderItem);
-         return orderItem;
+         // Проверяем, какая структура у cartItem
+         if (cartItem.product) {
+           // Новая структура: { product: Product, quantity: number }
+           console.log('✅ CheckoutPage: Используем новую структуру:', cartItem);
+           return cartItem;
+         } else {
+           // Старая структура: CartItem extends Product
+           console.log('🔄 CheckoutPage: Конвертируем старую структуру в новую');
+           const orderItem = {
+             product: {
+               id: cartItem.id,
+               name: cartItem.name,
+               nameEn: cartItem.nameEn,
+               nameRu: cartItem.nameRu,
+               nameHe: cartItem.nameHe,
+               price: cartItem.price,
+               currency: cartItem.currency,
+               category: cartItem.category,
+               description: cartItem.description,
+               descriptionEn: cartItem.descriptionEn,
+               descriptionRu: cartItem.descriptionRu,
+               descriptionHe: cartItem.descriptionHe,
+               image: cartItem.image,
+               farmId: cartItem.farmId,
+               farmName: cartItem.farmName,
+               location: cartItem.location,
+               organic: cartItem.organic,
+               inStock: cartItem.inStock,
+               unit: cartItem.unit,
+               rating: cartItem.rating,
+               reviews: cartItem.reviews
+             },
+             quantity: cartItem.quantity
+           };
+           console.log('✅ CheckoutPage: Преобразованный item:', orderItem);
+           return orderItem;
+         }
        });
       console.log('✅ CheckoutPage: Очищенные items:', cleanedItems);
       
-      const orderData = {
-        userId: user?.id || 'guest',
-        items: cleanedItems,
-        total: total || 0,
-        status: OrderStatus.PENDING,
-        deliveryAddress: cleanDeliveryAddress,
-        paymentMethod: paymentMethod || 'cash',
-        paymentId: paymentId ? paymentId : null,
-        notes: deliveryAddress.notes || '',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
+             // Создаем простую дату для заказа
+       const orderDate = new Date();
+       
+       const orderData = {
+         userId: user?.id || 'guest',
+         items: cleanedItems,
+         total: total || 0,
+         status: OrderStatus.PENDING,
+         deliveryAddress: cleanDeliveryAddress,
+         paymentMethod: paymentMethod || 'cash',
+         paymentId: paymentId ? paymentId : null,
+         notes: deliveryAddress.notes || '',
+         createdAt: orderDate,
+         updatedAt: orderDate
+       };
 
       // Очищаем все undefined значения в orderData
       const cleanedOrderData = cleanUndefinedValues(orderData);
-      
-      // Выводим undefined-поля в консоль для диагностики
-      const undefinedFields = findUndefinedFields(cleanedOrderData);
-      if (undefinedFields.length > 0) {
-        console.error('orderData has undefined fields:', undefinedFields);
-      }
 
       // Сохраняем заказ в Firestore
       console.log('🔄 CheckoutPage: Сохраняем заказ в Firestore:', cleanedOrderData);
       
-             // Создаем уникальное время для каждого заказа
-       const uniqueTime = new Date();
-       uniqueTime.setMilliseconds(uniqueTime.getMilliseconds() + Math.floor(Math.random() * 1000));
-       
-       // Обновляем время в orderData
-       cleanedOrderData.createdAt = uniqueTime;
-       cleanedOrderData.updatedAt = uniqueTime;
+                   // НЕ изменяем timestamps - они уже установлены как локальная дата
        
        const docRef = await addDoc(collection(db, 'orders'), cleanedOrderData);
       console.log('✅ CheckoutPage: Заказ успешно создан с ID:', docRef.id);
@@ -234,30 +219,36 @@ const CheckoutPage: React.FC = () => {
             <Typography variant="h6" gutterBottom>
               🛒 {t('cart')}
             </Typography>
-            {items.map((item) => (
-              <Card key={item.id} sx={{ mb: 2 }}>
-                <CardContent>
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={3}>
-                      <img 
-                        src={item.image} 
-                        alt={item.name}
-                        style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 8 }}
-                      />
+            {items.map((item) => {
+              // Обрабатываем как старую, так и новую структуру
+              const product = item.product || item;
+              const quantity = item.quantity;
+              
+              return (
+                <Card key={product.id} sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={3}>
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 8 }}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle1">{product.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          ₪{product.price} / {product.unit}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={3}>
+                        <Typography variant="h6">x{quantity}</Typography>
+                      </Grid>
                     </Grid>
-                    <Grid item xs={6}>
-                      <Typography variant="subtitle1">{item.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        ₪{item.price} / {item.unit}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={3}>
-                      <Typography variant="h6">x{item.quantity}</Typography>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
             <Divider sx={{ my: 2 }} />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="h6">{t('total')}:</Typography>

@@ -17,13 +17,15 @@ import {
 } from '@mui/material';
 import { Download, Refresh, TableChart } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { useAppSelector } from '../../hooks/redux';
 import { db } from '../../firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { Order, OrderStatus, PaymentMethod } from '../../types';
+import { Order, OrderStatus, PaymentMethod, getProductName } from '../../types';
 import * as XLSX from 'xlsx';
 
 const OrdersExport: React.FC = () => {
   const { t } = useTranslation();
+  const currentLanguage = useAppSelector(state => state.language.currentLanguage);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,41 +44,40 @@ const OrdersExport: React.FC = () => {
         
         // Проверяем структуру данных и обрабатываем возможные ошибки
         try {
-          // Безопасная обработка дат
-          let createdAt: Date;
-          let updatedAt: Date;
-          
-          // Проверяем createdAt
-          if (data.createdAt && typeof data.createdAt === 'object' && data.createdAt.toDate) {
-            // Это Firestore Timestamp
-            createdAt = data.createdAt.toDate();
-          } else if (data.createdAt && typeof data.createdAt === 'object' && Object.keys(data.createdAt).length === 0) {
-            // Пустой объект - используем текущую дату
-            console.warn('⚠️ OrdersExport: createdAt пустой объект, используем текущую дату');
-            createdAt = new Date();
-          } else if (data.createdAt instanceof Date) {
-            // Это уже Date объект
-            createdAt = data.createdAt;
-          } else {
-            // Fallback - текущая дата
-            createdAt = new Date();
-          }
-          
-          // Проверяем updatedAt
-          if (data.updatedAt && typeof data.updatedAt === 'object' && data.updatedAt.toDate) {
-            // Это Firestore Timestamp
-            updatedAt = data.updatedAt.toDate();
-          } else if (data.updatedAt && typeof data.updatedAt === 'object' && Object.keys(data.updatedAt).length === 0) {
-            // Пустой объект - используем текущую дату
-            console.warn('⚠️ OrdersExport: updatedAt пустой объект, используем текущую дату');
-            updatedAt = new Date();
-          } else if (data.updatedAt instanceof Date) {
-            // Это уже Date объект
-            updatedAt = data.updatedAt;
-          } else {
-            // Fallback - текущая дата
-            updatedAt = new Date();
-          }
+                    // Безопасная обработка дат - НИКОГДА НЕ ИЗМЕНЯЕМ ДАННЫЕ ИЗ FIREBASE
+           let createdAt: Date;
+           let updatedAt: Date;
+           
+           // Проверяем createdAt - только читаем, не изменяем
+           if (data.createdAt && typeof data.createdAt === 'object' && data.createdAt.toDate) {
+             // Это Firestore Timestamp
+             createdAt = data.createdAt.toDate();
+           } else if (data.createdAt instanceof Date) {
+             // Это уже Date объект - сохраняем как есть
+             createdAt = data.createdAt;
+           } else if (data.createdAt && typeof data.createdAt === 'number') {
+             // Это timestamp - конвертируем в Date
+             createdAt = new Date(data.createdAt);
+           } else {
+             // Если нет даты - используем текущее время (только для отображения)
+             console.warn('⚠️ OrdersExport: createdAt отсутствует, используем текущее время для отображения');
+             createdAt = new Date();
+           }
+           
+           // Проверяем updatedAt - только читаем, не изменяем
+           if (data.updatedAt && typeof data.updatedAt === 'object' && data.updatedAt.toDate) {
+             // Это Firestore Timestamp
+             updatedAt = data.updatedAt.toDate();
+           } else if (data.updatedAt instanceof Date) {
+             // Это уже Date объект
+             updatedAt = data.updatedAt;
+           } else if (data.updatedAt && typeof data.updatedAt === 'number') {
+             // Это timestamp - конвертируем в Date
+             updatedAt = new Date(data.updatedAt);
+           } else {
+             // Если нет updatedAt - используем createdAt
+             updatedAt = createdAt;
+           }
           
           const order: Order = {
             id: doc.id,
@@ -94,15 +95,45 @@ const OrdersExport: React.FC = () => {
 
           console.log('✅ OrdersExport: Успешно обработан заказ:', order);
           
-          // Диагностика структуры items
-          if (order.items && order.items.length > 0) {
-            console.log('📦 OrdersExport: Структура items для заказа', order.id, ':', order.items);
-            order.items.forEach((item, index) => {
-              if (!item.product) {
-                console.warn('⚠️ OrdersExport: item.product undefined для item', index, 'в заказе', order.id);
-              }
-            });
-          }
+                     // Диагностика структуры items
+           if (order.items && order.items.length > 0) {
+             console.log('📦 OrdersExport: Структура items для заказа', order.id, ':', order.items);
+             order.items.forEach((item, index) => {
+               console.log(`🔍 OrdersExport: Item ${index} в заказе ${order.id}:`, item);
+               if (!item.product) {
+                 console.warn('⚠️ OrdersExport: item.product undefined для item', index, 'в заказе', order.id);
+                                // Попробуем восстановить структуру, если item содержит данные продукта напрямую
+               const itemAny = item as any;
+               if (itemAny.name || itemAny.price) {
+                 console.log('🔄 OrdersExport: Пытаемся восстановить структуру продукта из item:', itemAny);
+                 item.product = {
+                   id: itemAny.id || 'unknown',
+                   name: itemAny.name || 'Unknown Product',
+                   nameEn: itemAny.nameEn,
+                   nameRu: itemAny.nameRu,
+                   nameHe: itemAny.nameHe || itemAny.name || 'Unknown Product',
+                   price: itemAny.price || 0,
+                   currency: itemAny.currency || 'ILS',
+                   category: itemAny.category || 'vegetables',
+                   description: itemAny.description || '',
+                   descriptionEn: itemAny.descriptionEn,
+                   descriptionRu: itemAny.descriptionRu,
+                   descriptionHe: itemAny.descriptionHe,
+                   image: itemAny.image || '',
+                   farmId: itemAny.farmId || '',
+                   farmName: itemAny.farmName || '',
+                   location: itemAny.location || '',
+                   organic: itemAny.organic || false,
+                   inStock: itemAny.inStock || true,
+                   unit: itemAny.unit || 'piece',
+                   rating: itemAny.rating,
+                   reviews: itemAny.reviews
+                 };
+                 console.log('✅ OrdersExport: Восстановлена структура продукта:', item.product);
+               }
+               }
+             });
+           }
           
           ordersData.push(order);
         } catch (error) {
@@ -145,7 +176,7 @@ const OrdersExport: React.FC = () => {
     orders.forEach(order => {
       const itemsText = order.items.map((orderItem: any) => {
         // Теперь у нас правильная структура OrderItem: { product: Product, quantity: number }
-        const productName = orderItem.product?.name || 'Unknown Product';
+        const productName = getProductName(orderItem.product, currentLanguage) || 'Unknown Product';
         return `${productName} x${orderItem.quantity}`;
       }).join('; ');
       
@@ -207,7 +238,7 @@ const OrdersExport: React.FC = () => {
     orders.forEach(order => {
       const itemsText = order.items.map((orderItem: any) => {
         // Теперь у нас правильная структура OrderItem: { product: Product, quantity: number }
-        const productName = orderItem.product?.name || 'Unknown Product';
+        const productName = getProductName(orderItem.product, currentLanguage) || 'Unknown Product';
         return `${productName} x${orderItem.quantity}`;
       }).join('; ');
       
@@ -336,9 +367,14 @@ const OrdersExport: React.FC = () => {
                   </TableCell>
                   <TableCell>₪{order.total.toFixed(2)}</TableCell>
                   <TableCell>
-                    {order.items.map((orderItem: any) => 
-                      `${orderItem.product?.name || 'Unknown Product'} x${orderItem.quantity}`
-                    ).join(', ')}
+                    {order.items.map((orderItem: any) => {
+                      if (!orderItem.product) {
+                        console.warn('⚠️ OrdersExport: item.product undefined в таблице для заказа', order.id);
+                        return `Unknown Product x${orderItem.quantity}`;
+                      }
+                      const productName = getProductName(orderItem.product, currentLanguage) || 'Unknown Product';
+                      return `${productName} x${orderItem.quantity}`;
+                    }).join(', ')}
                   </TableCell>
                 </TableRow>
               ))}

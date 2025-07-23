@@ -92,45 +92,51 @@ const CartDrawer: React.FC = () => {
             ) : (
               <>
                 <List>
-                  {items.map((item) => (
-                    <ListItem key={item.id} sx={{ px: 0 }}>
-                      <ListItemAvatar>
-                        <Avatar src={item.image} alt={item.name} />
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={item.name}
-                        secondary={`₪${item.price} / ${item.unit}`}
-                      />
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        >
-                          <Remove />
-                        </IconButton>
-                        <TextField
-                          size="small"
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
-                          sx={{ width: 60 }}
+                  {items.map((item) => {
+                    // Обрабатываем как старую, так и новую структуру
+                    const product = item.product || item;
+                    const quantity = item.quantity;
+                    
+                    return (
+                      <ListItem key={product.id} sx={{ px: 0 }}>
+                        <ListItemAvatar>
+                          <Avatar src={product.image} alt={product.name} />
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={product.name}
+                          secondary={`₪${product.price} / ${product.unit}`}
                         />
-                        <IconButton 
-                          size="small" 
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        >
-                          <Add />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          color="error"
-                          onClick={() => dispatch(removeFromCart(item.id))}
-                        >
-                          <Delete />
-                        </IconButton>
-                      </Box>
-                    </ListItem>
-                  ))}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleQuantityChange(product.id, quantity - 1)}
+                          >
+                            <Remove />
+                          </IconButton>
+                          <TextField
+                            size="small"
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value))}
+                            sx={{ width: 60 }}
+                          />
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleQuantityChange(product.id, quantity + 1)}
+                          >
+                            <Add />
+                          </IconButton>
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => dispatch(removeFromCart(product.id))}
+                          >
+                            <Delete />
+                          </IconButton>
+                        </Box>
+                      </ListItem>
+                    );
+                  })}
                 </List>
 
                 <Divider sx={{ my: 2 }} />
