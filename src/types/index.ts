@@ -37,7 +37,7 @@ export enum ProductCategory {
 export interface Order {
   id: string;
   userId: string;
-  items: CartItem[];
+  items: OrderItem[];
   total: number;
   status: OrderStatus;
   deliveryAddress: DeliveryAddress;
@@ -48,9 +48,14 @@ export interface Order {
   updatedAt: Date;
 }
 
-// 📦 Элемент корзины
-export interface CartItem {
+// 📦 Элемент корзины (для заказов)
+export interface OrderItem {
   product: Product;
+  quantity: number;
+}
+
+// 🛒 Элемент корзины (для Redux store)
+export interface CartItem extends Product {
   quantity: number;
 }
 

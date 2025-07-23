@@ -42,7 +42,43 @@ const OrdersExport: React.FC = () => {
         
         // Проверяем структуру данных и обрабатываем возможные ошибки
         try {
-          ordersData.push({
+          // Безопасная обработка дат
+          let createdAt: Date;
+          let updatedAt: Date;
+          
+          // Проверяем createdAt
+          if (data.createdAt && typeof data.createdAt === 'object' && data.createdAt.toDate) {
+            // Это Firestore Timestamp
+            createdAt = data.createdAt.toDate();
+          } else if (data.createdAt && typeof data.createdAt === 'object' && Object.keys(data.createdAt).length === 0) {
+            // Пустой объект - используем текущую дату
+            console.warn('⚠️ OrdersExport: createdAt пустой объект, используем текущую дату');
+            createdAt = new Date();
+          } else if (data.createdAt instanceof Date) {
+            // Это уже Date объект
+            createdAt = data.createdAt;
+          } else {
+            // Fallback - текущая дата
+            createdAt = new Date();
+          }
+          
+          // Проверяем updatedAt
+          if (data.updatedAt && typeof data.updatedAt === 'object' && data.updatedAt.toDate) {
+            // Это Firestore Timestamp
+            updatedAt = data.updatedAt.toDate();
+          } else if (data.updatedAt && typeof data.updatedAt === 'object' && Object.keys(data.updatedAt).length === 0) {
+            // Пустой объект - используем текущую дату
+            console.warn('⚠️ OrdersExport: updatedAt пустой объект, используем текущую дату');
+            updatedAt = new Date();
+          } else if (data.updatedAt instanceof Date) {
+            // Это уже Date объект
+            updatedAt = data.updatedAt;
+          } else {
+            // Fallback - текущая дата
+            updatedAt = new Date();
+          }
+          
+          const order: Order = {
             id: doc.id,
             userId: data.userId || 'unknown',
             items: data.items || [],
@@ -52,9 +88,23 @@ const OrdersExport: React.FC = () => {
             paymentMethod: data.paymentMethod || PaymentMethod.CASH,
             paymentId: data.paymentId || null,
             notes: data.notes || '',
-            createdAt: data.createdAt?.toDate() || new Date(),
-            updatedAt: data.updatedAt?.toDate() || new Date(),
-          });
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          };
+
+          console.log('✅ OrdersExport: Успешно обработан заказ:', order);
+          
+          // Диагностика структуры items
+          if (order.items && order.items.length > 0) {
+            console.log('📦 OrdersExport: Структура items для заказа', order.id, ':', order.items);
+            order.items.forEach((item, index) => {
+              if (!item.product) {
+                console.warn('⚠️ OrdersExport: item.product undefined для item', index, 'в заказе', order.id);
+              }
+            });
+          }
+          
+          ordersData.push(order);
         } catch (error) {
           console.error('Ошибка обработки заказа в админке:', error, data);
         }
@@ -93,9 +143,11 @@ const OrdersExport: React.FC = () => {
     ];
 
     orders.forEach(order => {
-      const itemsText = order.items.map(item => 
-        `${item.product.name} x${item.quantity}`
-      ).join('; ');
+      const itemsText = order.items.map((orderItem: any) => {
+        // Теперь у нас правильная структура OrderItem: { product: Product, quantity: number }
+        const productName = orderItem.product?.name || 'Unknown Product';
+        return `${productName} x${orderItem.quantity}`;
+      }).join('; ');
       
       csvData.push([
         order.id,
@@ -153,9 +205,11 @@ const OrdersExport: React.FC = () => {
     ];
 
     orders.forEach(order => {
-      const itemsText = order.items.map(item => 
-        `${item.product.name} x${item.quantity}`
-      ).join('; ');
+      const itemsText = order.items.map((orderItem: any) => {
+        // Теперь у нас правильная структура OrderItem: { product: Product, quantity: number }
+        const productName = orderItem.product?.name || 'Unknown Product';
+        return `${productName} x${orderItem.quantity}`;
+      }).join('; ');
       
       excelData.push([
         order.id,
@@ -282,8 +336,8 @@ const OrdersExport: React.FC = () => {
                   </TableCell>
                   <TableCell>₪{order.total.toFixed(2)}</TableCell>
                   <TableCell>
-                    {order.items.map(item => 
-                      `${item.product.name} x${item.quantity}`
+                    {order.items.map((orderItem: any) => 
+                      `${orderItem.product?.name || 'Unknown Product'} x${orderItem.quantity}`
                     ).join(', ')}
                   </TableCell>
                 </TableRow>

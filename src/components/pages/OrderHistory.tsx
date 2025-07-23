@@ -15,24 +15,71 @@ const OrderHistory: React.FC = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!user) return;
+      if (!user) {
+        console.log('❌ OrderHistory: Нет пользователя, пропускаем загрузку заказов');
+        return;
+      }
+      
+      console.log('🔄 OrderHistory: Начинаем загрузку заказов для пользователя:', user.id, user.email);
       setLoading(true);
       setError('');
+      
       try {
-        // Временно получаем все заказы без фильтра
+        // Получаем заказы для текущего пользователя
+        console.log('🔍 OrderHistory: Загружаем заказы для пользователя:', user.id);
         const q = query(
           collection(db, 'orders'),
           where('userId', '==', user.id)
         );
+        
+        console.log('🔍 OrderHistory: Выполняем запрос к Firestore...');
         const querySnapshot = await getDocs(q);
+        console.log('📊 OrderHistory: Получено документов:', querySnapshot.size);
+        
         const ordersData: Order[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data();
-          console.log('Заказ:', data);
+          console.log('📋 OrderHistory: Обрабатываем заказ:', doc.id, data);
           
           // Проверяем структуру данных и обрабатываем возможные ошибки
           try {
-            ordersData.push({
+            // Безопасная обработка дат
+            let createdAt: Date;
+            let updatedAt: Date;
+            
+            // Проверяем createdAt
+            if (data.createdAt && typeof data.createdAt === 'object' && data.createdAt.toDate) {
+              // Это Firestore Timestamp
+              createdAt = data.createdAt.toDate();
+            } else if (data.createdAt && typeof data.createdAt === 'object' && Object.keys(data.createdAt).length === 0) {
+              // Пустой объект - используем текущую дату
+              console.warn('⚠️ OrderHistory: createdAt пустой объект, используем текущую дату');
+              createdAt = new Date();
+            } else if (data.createdAt instanceof Date) {
+              // Это уже Date объект
+              createdAt = data.createdAt;
+            } else {
+              // Fallback - текущая дата
+              createdAt = new Date();
+            }
+            
+            // Проверяем updatedAt
+            if (data.updatedAt && typeof data.updatedAt === 'object' && data.updatedAt.toDate) {
+              // Это Firestore Timestamp
+              updatedAt = data.updatedAt.toDate();
+            } else if (data.updatedAt && typeof data.updatedAt === 'object' && Object.keys(data.updatedAt).length === 0) {
+              // Пустой объект - используем текущую дату
+              console.warn('⚠️ OrderHistory: updatedAt пустой объект, используем текущую дату');
+              updatedAt = new Date();
+            } else if (data.updatedAt instanceof Date) {
+              // Это уже Date объект
+              updatedAt = data.updatedAt;
+            } else {
+              // Fallback - текущая дата
+              updatedAt = new Date();
+            }
+            
+            const order: Order = {
               id: doc.id,
               userId: data.userId || 'unknown',
               items: data.items || [],
@@ -42,15 +89,21 @@ const OrderHistory: React.FC = () => {
               paymentMethod: data.paymentMethod || PaymentMethod.CASH,
               paymentId: data.paymentId || null,
               notes: data.notes || '',
-              createdAt: data.createdAt?.toDate() || new Date(),
-              updatedAt: data.updatedAt?.toDate() || new Date(),
-            });
+              createdAt: createdAt,
+              updatedAt: updatedAt,
+            };
+            
+            console.log('✅ OrderHistory: Успешно обработан заказ:', order);
+            ordersData.push(order);
           } catch (error) {
-            console.error('Ошибка обработки заказа:', error, data);
+            console.error('❌ OrderHistory: Ошибка обработки заказа:', error, data);
           }
         });
+        
+        console.log('🎉 OrderHistory: Всего обработано заказов:', ordersData.length);
         setOrders(ordersData);
       } catch (error) {
+        console.error('❌ OrderHistory: Ошибка загрузки заказов:', error);
         setError(t('order_history_error'));
       } finally {
         setLoading(false);
@@ -118,9 +171,13 @@ const OrderHistory: React.FC = () => {
                   </TableCell>
                   <TableCell>₪{order.total.toFixed(2)}</TableCell>
                   <TableCell>{getPaymentMethodText(order.paymentMethod)}</TableCell>
-                  <TableCell>
-                    {order.items.map(item => `${item.product.name} x${item.quantity}`).join(', ')}
-                  </TableCell>
+                                     <TableCell>
+                     {order.items.map((orderItem: any) => {
+                       // Теперь у нас правильная структура OrderItem: { product: Product, quantity: number }
+                       const productName = orderItem.product?.name || 'Unknown Product';
+                       return `${productName} x${orderItem.quantity}`;
+                     }).join(', ')}
+                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>

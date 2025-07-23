@@ -25,7 +25,7 @@ import { clearCart, toggleCart } from '../../store/slices/cartSlice';
 import { useTranslation } from 'react-i18next';
 import { DeliveryAddress, PaymentMethod, OrderStatus } from '../../types';
 import { db } from '../../firebase';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import CardPayment from '../payment/CardPayment';
 import PayPalPayment from '../payment/PayPalPayment';
 import WelcomePage from './WelcomePage';
@@ -141,9 +141,45 @@ const CheckoutPage: React.FC = () => {
         Object.entries(deliveryAddress).map(([k, v]) => [k, v === undefined ? '' : v])
       );
       
+             // Преобразуем структуру корзины в структуру заказа
+       console.log('🔄 CheckoutPage: Исходные items из корзины:', items);
+       const cleanedItems = items.map((cartItem: any) => {
+         // В корзине CartItem расширяет Product, поэтому у нас есть все поля продукта напрямую
+         // Преобразуем в структуру OrderItem: { product: Product, quantity: number }
+         const orderItem = {
+           product: {
+             id: cartItem.id,
+             name: cartItem.name,
+             nameEn: cartItem.nameEn,
+             nameRu: cartItem.nameRu,
+             nameHe: cartItem.nameHe,
+             price: cartItem.price,
+             currency: cartItem.currency,
+             category: cartItem.category,
+             description: cartItem.description,
+             descriptionEn: cartItem.descriptionEn,
+             descriptionRu: cartItem.descriptionRu,
+             descriptionHe: cartItem.descriptionHe,
+             image: cartItem.image,
+             farmId: cartItem.farmId,
+             farmName: cartItem.farmName,
+             location: cartItem.location,
+             organic: cartItem.organic,
+             inStock: cartItem.inStock,
+             unit: cartItem.unit,
+             rating: cartItem.rating,
+             reviews: cartItem.reviews
+           },
+           quantity: cartItem.quantity
+         };
+         console.log('✅ CheckoutPage: Преобразованный item:', orderItem);
+         return orderItem;
+       });
+      console.log('✅ CheckoutPage: Очищенные items:', cleanedItems);
+      
       const orderData = {
         userId: user?.id || 'guest',
-        items: items || [],
+        items: cleanedItems,
         total: total || 0,
         status: OrderStatus.PENDING,
         deliveryAddress: cleanDeliveryAddress,
@@ -164,7 +200,19 @@ const CheckoutPage: React.FC = () => {
       }
 
       // Сохраняем заказ в Firestore
-      await addDoc(collection(db, 'orders'), cleanedOrderData);
+      console.log('🔄 CheckoutPage: Сохраняем заказ в Firestore:', cleanedOrderData);
+      
+             // Создаем уникальное время для каждого заказа
+       const uniqueTime = new Date();
+       uniqueTime.setMilliseconds(uniqueTime.getMilliseconds() + Math.floor(Math.random() * 1000));
+       
+       // Обновляем время в orderData
+       cleanedOrderData.createdAt = uniqueTime;
+       cleanedOrderData.updatedAt = uniqueTime;
+       
+       const docRef = await addDoc(collection(db, 'orders'), cleanedOrderData);
+      console.log('✅ CheckoutPage: Заказ успешно создан с ID:', docRef.id);
+      
       // Очищаем корзину
       dispatch(clearCart());
       dispatch(toggleCart());
