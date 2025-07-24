@@ -16,6 +16,8 @@
 - **Мультиязычная корзина** - При добавлении товара в корзину сохраняются name/description на языке пользователя.
 - **Единая система авторизации** - WelcomePage с модальными окнами AuthFrame для входа/регистрации/сброса пароля.
 - **Роутинг** - Используется react-router-dom, основные маршруты: /, /welcome, /catalog, /orders, /admin, /seller.
+- **Очистка корзины** - Автоматическая очистка корзины при выходе из аккаунта.
+- **Оптимизированные импорты** - Правильная структура импортов Redux слайсов.
 
 ## 📁 Структура проекта
 
@@ -24,29 +26,44 @@ farmer-market-israel/
 ├── 📁 public/                    # Статические файлы
 │   ├── favicon.ico              # Иконка сайта
 │   ├── logo192.png              # Manifest иконка
-│   └── manifest.json            # PWA манифест
+│   ├── logo512.png              # Manifest иконка
+│   ├── manifest.json            # PWA манифест
+│   └── robots.txt               # SEO файл
 ├── 📁 src/                      # Исходный код
 │   ├── 📁 assets/               # Ресурсы
 │   │   └── 📁 images/           # Изображения
 │   │       ├── Farm Sharing background.jpg
 │   │       └── products/        # Изображения товаров
 │   ├── 📁 components/           # React компоненты
+│   │   ├── 📁 admin/            # Админ компоненты
+│   │   │   └── OrdersExport.tsx # Экспорт заказов
 │   │   ├── 📁 common/           # Общие компоненты
-│   │   │   ├── CartDrawer.tsx   # Корзина покупок
-│   │   │   ├── GoogleLogo.tsx   # Логотип Google
-│   │   │   └── GoogleLogoDetailed.tsx # Детальный логотип Google
+│   │   │   ├── AnimatedCartIcon.tsx    # Анимированная иконка корзины
+│   │   │   ├── CartDrawer.tsx          # Корзина покупок
+│   │   │   ├── FlyingProduct.tsx       # Анимация перелёта товара
+│   │   │   ├── GoogleLogo.tsx          # Логотип Google
+│   │   │   ├── OptimizedImage.tsx      # Оптимизированные изображения
+│   │   │   ├── ProductCard.tsx         # Карточка товара
+│   │   │   └── SimpleImage.tsx         # Простые изображения
 │   │   ├── 📁 layout/           # Макет
 │   │   │   └── Header.tsx       # Верхняя панель с меню пользователя
-│   │   └── 📁 pages/            # Страницы
-│   │       ├── WelcomePage.tsx  # Единая страница авторизации с модальными окнами
-│   │       ├── AuthFrame.tsx    # Модальное окно входа/регистрации/сброса пароля
-│   │       ├── ProductCatalog.tsx # Каталог товаров
-│   │       ├── CheckoutPage.tsx # Оформление заказа
-│   │       ├── OrderHistory.tsx # История заказов (роут /orders)
-│   │       ├── AdminPage.tsx    # Админка
-│   │       └── SellerStubPage.tsx # Заглушка для продавцов
+│   │   ├── 📁 pages/            # Страницы
+│   │   │   ├── AdminPage.tsx           # Админ панель
+│   │   │   ├── AuthFrame.tsx           # Модальное окно входа/регистрации/сброса пароля
+│   │   │   ├── CatalogPage.tsx         # Страница каталога
+│   │   │   ├── CheckoutPage.tsx        # Оформление заказа
+│   │   │   ├── OrderHistory.tsx        # История заказов (роут /orders)
+│   │   │   ├── ProductCatalog.tsx      # Каталог товаров
+│   │   │   ├── SellerStubPage.tsx      # Заглушка для продавцов
+│   │   │   ├── WelcomePage.tsx         # Единая страница авторизации с модальными окнами
+│   │   │   └── WelcomeScreen.tsx       # Экран приветствия
+│   │   └── 📁 payment/          # Компоненты оплаты
+│   │       ├── CardPayment.tsx         # Оплата картой
+│   │       └── PayPalPayment.tsx       # PayPal оплата
 │   ├── 📁 hooks/                # Кастомные хуки
-│   │   └── redux.ts             # Redux хуки
+│   │   ├── redux.ts                     # Redux хуки
+│   │   ├── useFlyingAnimation.ts       # Хук для анимации перелёта
+│   │   └── usePerformanceOptimization.ts # Оптимизация производительности
 │   ├── 📁 store/                # Redux состояние
 │   │   ├── index.ts             # Настройка store
 │   │   └── 📁 slices/           # Redux слайсы
@@ -58,9 +75,9 @@ farmer-market-israel/
 │   │   ├── index.ts             # Основные типы
 │   │   └── images.d.ts          # Типы изображений
 │   ├── App.tsx                  # Главный компонент с роутингом
-│   ├── App.css                  # Стили приложения
 │   ├── firebase.ts              # Firebase конфигурация
 │   ├── i18n.ts                  # Интернационализация
+│   ├── index.css                # Глобальные стили
 │   └── main.tsx                 # Точка входа
 ├── 📁 scripts/                  # Скрипты для работы с данными
 │   ├── import-admin.js          # Импорт данных в Firestore
@@ -102,6 +119,11 @@ CartDrawer → CheckoutPage → Firebase Firestore (userId, name, description н
 ### 6. История заказов
 ```
 OrderHistory → Firestore (фильтрация по userId) → Таблица заказов пользователя
+```
+
+### 7. Выход из аккаунта
+```
+Header → AuthFrame → Firebase signOut → Redux clearUser + clearCart → Очистка корзины
 ```
 
 ## 🎯 Компонентная архитектура
@@ -162,6 +184,26 @@ const CommonComponent: React.FC<CommonComponentProps> = ({
 };
 ```
 
+### Анимационные компоненты
+Специализированные компоненты для анимаций:
+
+```typescript
+// AnimatedCartIcon.tsx
+const AnimatedCartIcon: React.FC<{ itemCount: number }> = ({ itemCount }) => {
+  const animation = useSpring({
+    scale: itemCount > 0 ? 1.2 : 1,
+    config: { tension: 300, friction: 10 }
+  });
+  
+  return (
+    <animated.div style={animation}>
+      <ShoppingCartIcon />
+      {itemCount > 0 && <Badge badgeContent={itemCount} />}
+    </animated.div>
+  );
+};
+```
+
 ## 🔧 Redux архитектура
 
 ### Store структура
@@ -188,12 +230,26 @@ const cartSlice = createSlice({
     },
     removeItem: (state, action) => {
       // Логика удаления
+    },
+    clearCart: (state) => {
+      // Очистка корзины при выходе
+      state.items = [];
+      state.total = 0;
     }
   },
   extraReducers: (builder) => {
     // Асинхронные действия
   }
 });
+```
+
+### Правильные импорты
+```typescript
+// Правильная структура импортов
+import { setUser, clearUser, setToken } from '../../store/slices/userSlice';
+import { clearCart } from '../../store/slices/cartSlice';
+import { setLanguage } from '../../store/slices/languageSlice';
+import { fetchProducts } from '../../store/slices/productsSlice';
 ```
 
 ## 🌐 Интернационализация
@@ -208,6 +264,8 @@ const resources = {
       'forgot_password': 'Забыли пароль?',
       'reset_password': 'Сбросить пароль',
       'remember_me': 'Запомнить меня',
+      'logout': 'Выйти',
+      'clear_cart': 'Очистить корзину',
       // ...
     }
   },
@@ -218,6 +276,8 @@ const resources = {
       'forgot_password': 'Forgot Password?',
       'reset_password': 'Reset Password',
       'remember_me': 'Remember Me',
+      'logout': 'Logout',
+      'clear_cart': 'Clear Cart',
       // ...
     }
   },
@@ -228,6 +288,8 @@ const resources = {
       'forgot_password': 'שכחת סיסמה?',
       'reset_password': 'איפוס סיסמה',
       'remember_me': 'זכור אותי',
+      'logout': 'התנתק',
+      'clear_cart': 'נקה עגלה',
       // ...
     }
   }
@@ -335,6 +397,13 @@ const handleRememberMe = (token: string, remember: boolean) => {
     sessionStorage.setItem('jwt', token);
   }
 };
+
+// Выход с очисткой корзины
+const handleLogout = async () => {
+  await signOut(auth);
+  dispatch(clearUser());
+  dispatch(clearCart()); // Очищаем корзину при выходе
+};
 ```
 
 ### Firebase Security Rules
@@ -397,7 +466,7 @@ const theme = createTheme({
 
 ### CSS модули
 ```css
-/* App.css */
+/* index.css */
 .App {
   background-image: url('./assets/images/Farm Sharing background.jpg');
   background-size: cover;
@@ -447,11 +516,40 @@ xl: 1536px // Большие десктопы
 - **Memoization** - Кэширование вычислений
 - **Bundle Optimization** - Оптимизация сборки
 - **Image Optimization** - Оптимизация изображений товаров
+- **React Spring** - Эффективные анимации
+- **Оптимизированные импорты** - Правильная структура Redux слайсов
 
 ### Мониторинг
 - **Firebase Analytics** - Отслеживание событий
 - **Error Boundaries** - Обработка ошибок
 - **Performance Monitoring** - Мониторинг производительности
+
+### Кастомные хуки для оптимизации
+```typescript
+// usePerformanceOptimization.ts
+export const usePerformanceOptimization = () => {
+  const [isOptimized, setIsOptimized] = useState(false);
+  
+  useEffect(() => {
+    // Логика оптимизации
+    setIsOptimized(true);
+  }, []);
+  
+  return { isOptimized };
+};
+
+// useFlyingAnimation.ts
+export const useFlyingAnimation = (targetRef: RefObject<HTMLElement>) => {
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  const animate = useCallback(() => {
+    setIsAnimating(true);
+    // Логика анимации
+  }, [targetRef]);
+  
+  return { isAnimating, animate };
+};
+```
 
 ## 🔄 Жизненный цикл компонентов
 
@@ -491,9 +589,14 @@ src/
 ├── __tests__/
 │   ├── components/
 │   │   ├── WelcomePage.test.tsx
-│   │   └── AuthFrame.test.tsx
-│   └── store/
-│       └── slices/
+│   │   ├── AuthFrame.test.tsx
+│   │   └── CartDrawer.test.tsx
+│   ├── store/
+│   │   └── slices/
+│   │       ├── cartSlice.test.ts
+│   │       └── userSlice.test.ts
+│   └── hooks/
+│       └── useFlyingAnimation.test.ts
 └── setupTests.ts
 ```
 
@@ -505,6 +608,11 @@ import WelcomePage from '../components/pages/WelcomePage';
 test('renders welcome page', () => {
   render(<WelcomePage />);
   expect(screen.getByText(/Farm Market Israel/i)).toBeInTheDocument();
+});
+
+test('clears cart on logout', () => {
+  const mockDispatch = jest.fn();
+  // Тест очистки корзины при выходе
 });
 ```
 
@@ -526,6 +634,25 @@ vercel
 # Netlify
 netlify deploy
 ```
+
+## 🔧 Последние обновления
+
+### v2.1.0 - Исправления и улучшения
+- ✅ Исправлены импорты Redux слайсов (clearCart из cartSlice, а не userSlice)
+- ✅ Добавлена очистка корзины при выходе из аккаунта
+- ✅ Улучшена структура компонентов
+- ✅ Оптимизированы анимации
+- ✅ Добавлены новые хуки для производительности
+- ✅ Обновлена документация
+
+### v2.0.0 - Основные функции
+- ✅ Многоязычность (Русский, Английский, Иврит)
+- ✅ Google авторизация
+- ✅ Гостевой режим
+- ✅ История заказов
+- ✅ Мультиязычная корзина
+- ✅ Сброс пароля
+- ✅ Модальные окна авторизации
 
 ---
 
