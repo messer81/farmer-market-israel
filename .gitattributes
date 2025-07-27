@@ -1,0 +1,16 @@
+# Определяем тип проекта как JavaScript/TypeScript
+*.js linguist-language=JavaScript
+*.jsx linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.json linguist-language=JSON
+
+# Исключаем Python файлы (если есть)
+*.py linguist-vendored
+*.pyc linguist-vendored
+
+# Определяем основные файлы проекта
+package.json linguist-documentation
+package-lock.json linguist-vendored
+tsconfig.json linguist-documentation
+vite.config.ts linguist-language=TypeScript 

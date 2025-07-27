@@ -1,0 +1,11 @@
+# Переопределяем определение языка проекта
+# GitHub будет определять проект как TypeScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.js linguist-language=JavaScript
+*.jsx linguist-language=JavaScript
+
+# Исключаем файлы, которые могут влиять на определение
+*.py linguist-vendored
+*.pyc linguist-vendored
+__pycache__ linguist-vendored 
