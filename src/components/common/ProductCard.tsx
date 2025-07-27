@@ -44,16 +44,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, lang, getCategoryEmo
           height: '100%', 
           display: 'flex', 
           flexDirection: 'column',
-          transition: 'transform 0.18s cubic-bezier(.4,2,.6,1), box-shadow 0.18s cubic-bezier(.4,2,.6,1)',
-          boxShadow: 2,
+          transition: '0.3s',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
           '&:hover': {
-            transform: 'translateY(-6px) scale(1.03)',
-            boxShadow: 8,
+            transform: 'scale(1.05)',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.15)',
             zIndex: 2,
-            '& img': {
-              transform: 'scale(1.08)',
-              transition: 'transform 0.5s cubic-bezier(.4,1,.6,1)',
-            }
           },
           minHeight: '400px',
           maxHeight: '400px',

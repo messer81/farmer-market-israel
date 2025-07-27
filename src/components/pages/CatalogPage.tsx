@@ -13,11 +13,12 @@ const CatalogPage: React.FC = () => {
     <div
       className="App"
       style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
+        // backgroundImage: `url(${backgroundImage})`,
+        // backgroundSize: 'cover',
+        // backgroundPosition: 'center',
+        // backgroundRepeat: 'no-repeat',
+        // backgroundAttachment: 'fixed',
+        backgroundColor: 'white',
         minHeight: '100vh'
       }}
     >
