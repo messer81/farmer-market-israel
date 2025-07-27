@@ -155,7 +155,7 @@ const Header: React.FC<HeaderProps> = ({
 
         {/* 🛒 Анимированная корзина */}
         <AnimatedCartIcon
-          itemCount={cartItems.length}
+          itemCount={cartItems.reduce((total, item) => total + item.quantity, 0)}
           onClick={handleCartClick}
           ref={cartRef}
         />
