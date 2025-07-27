@@ -307,39 +307,14 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ cartRef }) => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      {/* 🔍 Фильтры */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-        <TextField
-          placeholder={t('search_products')}
-          value={searchTerm}
-          onChange={(e) => dispatch(setSearchTerm(e.target.value))}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-          sx={{
-            minWidth: 300,
-            background: 'rgba(255,255,255,0.85)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
-            borderRadius: 2,
-            '& .MuiInputBase-root': {
-              borderRadius: 2,
-              background: 'transparent',
-            },
-          }}
-        />
-        
-        {/* 🏷️ Кнопки категорий вместо выпадающего списка */}
-        <Box sx={{ 
-          display: 'flex', 
-          gap: 1, 
-          flexWrap: 'wrap', 
-          justifyContent: 'center',
-          mt: 2
-        }}>
+      {/* 🏷️ Кнопки категорий */}
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 1, 
+        flexWrap: 'wrap', 
+        justifyContent: 'center',
+        mb: 3
+      }}>
           {/* Кнопка "Все категории" */}
           <Button
             variant={selectedCategory === null ? "contained" : "outlined"}
@@ -391,7 +366,6 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ cartRef }) => {
             </Button>
           ))}
         </Box>
-      </Box>
 
       {/* 📦 Каталог товаров */}
       {filteredProducts.length === 0 ? (

@@ -16,16 +16,19 @@ import {
   Language,
   AdminPanelSettings,
   Home,
+  Search,
 } from '@mui/icons-material';
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { toggleCart } from '../../store/slices/cartSlice';
 import { clearUser } from '../../store/slices/userSlice';
 import { clearCart } from '../../store/slices/cartSlice';
 import { setLanguage, type Language as LanguageType } from '../../store/slices/languageSlice';
+import { setSearchTerm, selectSearchTerm } from '../../store/slices/productsSlice';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import { useNavigate } from 'react-router-dom';
 import AnimatedCartIcon from '../common/AnimatedCartIcon';
+import { TextField, InputAdornment } from '@mui/material';
 
 interface HeaderProps {
   onProfileClick?: () => void;
@@ -42,6 +45,7 @@ const Header: React.FC<HeaderProps> = ({
   const cartItems = useAppSelector(state => state.cart.items);
   const user = useAppSelector(state => state.user.user);
   const currentLanguage = useAppSelector(state => state.language.currentLanguage);
+  const searchTerm = useAppSelector(selectSearchTerm);
   const [langAnchor, setLangAnchor] = React.useState<null | HTMLElement>(null);
   const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
   const { t } = useTranslation();
@@ -123,6 +127,47 @@ const Header: React.FC<HeaderProps> = ({
         >
           <Home />
         </IconButton>
+
+        {/* 🔍 Поиск */}
+        <TextField
+          placeholder="Поиск товаров..."
+          value={searchTerm}
+          onChange={(e) => dispatch(setSearchTerm(e.target.value))}
+          size="small"
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search sx={{ color: 'white' }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            minWidth: 250,
+            maxWidth: 300,
+            mr: 2,
+            '& .MuiInputBase-root': {
+              color: 'white',
+              borderRadius: 2,
+              background: 'rgba(255,255,255,0.15)',
+              '&:hover': {
+                background: 'rgba(255,255,255,0.2)',
+              },
+              '& fieldset': {
+                borderColor: 'rgba(255,255,255,0.3)',
+              },
+              '&:hover fieldset': {
+                borderColor: 'rgba(255,255,255,0.5)',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: 'white',
+              },
+            },
+            '& .MuiInputBase-input::placeholder': {
+              color: 'rgba(255,255,255,0.7)',
+              opacity: 1,
+            },
+          }}
+        />
 
         {/* 🌐 Языки */}
         <IconButton color="inherit" onClick={handleLanguageClick}>
