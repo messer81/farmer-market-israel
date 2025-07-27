@@ -60,12 +60,11 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onBuyerClick, onSellerCli
   return (
     <div
       style={{
-        // backgroundImage: `url(${backgroundImage})`,
-        // backgroundSize: 'cover',
-        // backgroundPosition: 'center',
-        // backgroundRepeat: 'no-repeat',
-        // backgroundAttachment: 'fixed',
-        backgroundColor: 'white',
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
